@@ -1,0 +1,13 @@
+{
+  "name": "lang-experiment",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "parcel index.html"
+  },
+  "devDependencies": {
+    "parcel": "^1.12.4",
+    "typescript": "^3.8.3"
+  }
+}
