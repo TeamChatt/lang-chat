@@ -1,15 +1,14 @@
-import { Prog } from '../ast'
+import { Prog, Cmd, Expr } from '../ast'
 
 export const program: Prog = {
   commands: [
-    {
-      kind: 'Cmd.Def',
+    Cmd.Def({
       variable: 'start',
-      value: { kind: 'Expr.Cmds', cmds: [] },
-    },
-    {
-      kind: 'Cmd.Run',
-      expr: { kind: 'Expr.Var', variable: 'start' },
-    },
+      value: Expr.Cmds([
+        Cmd.Exec({ fn: 'exec-1', args: [] }),
+        Cmd.Exec({ fn: 'exec-2', args: [] }),
+      ]),
+    }),
+    Cmd.Run(Expr.Var('start')),
   ],
 }
