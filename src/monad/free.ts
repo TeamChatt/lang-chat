@@ -1,4 +1,8 @@
-abstract class Free<S, R> {
+interface Chain<T> {
+  flatMap: <S>(f: (t: T) => Chain<S>) => Chain<S>
+}
+
+export abstract class Free<S, R> {
   static impure<S, R>(next, value: S): Free<S, R> {
     return new FreeImpure(next, value)
   }
@@ -11,7 +15,10 @@ abstract class Free<S, R> {
 
   abstract map<R2>(f: (t: R) => R2): Free<S, R2>
   abstract flatten() // TODO: how to type this?
-  abstract foldMap<T>(step: (s: S) => Free<S, R>, done: (r: R) => T): T
+  abstract foldMap<T>(
+    step: (s: S) => Chain<R>,
+    done: (r: R) => Chain<T>
+  ): Chain<T>
 
   flatMap<R2>(f: (t: R) => Free<S, R2>): Free<S, R2> {
     return this.map(f).flatten()
@@ -34,7 +41,10 @@ class FreePure<S, Result> extends Free<S, Result> {
     const { value } = this
     return value
   }
-  foldMap<T>(step: (s: S) => Free<S, Result>, done: (r: Result) => T): T {
+  foldMap<T>(
+    step: (s: S) => Chain<Result>,
+    done: (r: Result) => Chain<T>
+  ): Chain<T> {
     const { value } = this
     return done(value)
   }
@@ -60,12 +70,8 @@ class FreeImpure<Step, R> extends Free<Step, R> {
     const inner_next = (x: R) => next(x).flatten()
     return Free.impure(inner_next, value)
   }
-  foldMap<T>(step: (s: Step) => Free<Step, R>, done: (r: R) => T): T {
+  foldMap<T>(step: (s: Step) => Chain<R>, done: (r: R) => Chain<T>): Chain<T> {
     const { next, value } = this
-    return step(value)
-      .flatMap((r) => next(r))
-      .foldMap(step, done)
+    return step(value).flatMap((r) => next(r).foldMap(step, done))
   }
 }
-
-export default Free

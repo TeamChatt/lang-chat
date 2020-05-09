@@ -1,13 +1,15 @@
-import Free from '../monad/free'
+import { Free } from '../monad/free'
 
 // Actions
-type Action =
+export type Action =
   | ActionDefineVar
   | ActionLookupVar
   | ActionExec
   | ActionForkFirst
   | ActionForkLast
   | ActionPromptChoice
+  | ActionPushStack
+  | ActionPopStack
 
 interface ActionDefineVar {
   kind: 'Action.DefineVar'
@@ -35,6 +37,12 @@ interface ActionPromptChoice {
   kind: 'Action.PromptChoice'
   branches: PromptChoice[]
 }
+interface ActionPushStack {
+  kind: 'Action.PushStack'
+}
+interface ActionPopStack {
+  kind: 'Action.PopStack'
+}
 
 type PromptChoice = {
   label: string
@@ -56,6 +64,12 @@ export const lookupVar = <R>(variable): Interpreter<R> =>
   Free.lift({ kind: 'Action.LookupVar', variable })
 
 // Control Flow
+const pushStack: Interpreter<any> = Free.lift({ kind: 'Action.PushStack' })
+const popStack: Interpreter<any> = Free.lift({ kind: 'Action.PopStack' })
+
+export const scoped = <R>(action: Interpreter<R>) =>
+  pushStack.flatMap(() => action).flatMap(() => popStack)
+
 export const forkFirst = <R>(branches: Interpreter<R>[]): Interpreter<R> =>
   Free.lift({ kind: 'Action.ForkFirst', branches })
 

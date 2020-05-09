@@ -1,5 +1,3 @@
-import runGame from './run'
+import runGame from './interpret'
 
-export {
-  runGame,
-}
+export { runGame }

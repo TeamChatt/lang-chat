@@ -1,16 +1,20 @@
 import { Prog, Cmd, Expr } from '../ast'
 import {
   Interpreter,
+  pure,
+  empty,
   defineVar,
   lookupVar,
   exec,
-  pure,
-  empty,
   forkFirst,
   forkLast,
   promptChoice,
+  scoped,
 } from './actions'
-import Maybe from '../monad/maybe'
+import { Maybe } from '../monad/maybe'
+
+//TODO: how to write types for this
+const match = (obj, cases) => cases[obj.kind](obj)
 
 const sequenceM = <T>(
   array: T[],
@@ -44,9 +48,6 @@ interface ResultCmds {
   cmds: Cmd[]
 }
 
-//TODO: how to write types for this
-const match = (obj, cases) => cases[obj.kind](obj)
-
 // Commands
 const runCmd = (cmd: Cmd): Interpreter<any> =>
   match(cmd, {
@@ -68,11 +69,13 @@ const runBranch = (branch): Interpreter<any> =>
   })
 
 const runResult = (result: Result): Interpreter<any> =>
-  match(result, {
-    'Result.Cmd': ({ cmd }) => runCmd(cmd),
-    'Result.Cmds': ({ cmds }) => sequenceM(cmds, runCmd),
-    'Result.Lit': fail,
-  })
+  scoped(
+    match(result, {
+      'Result.Cmd': ({ cmd }) => runCmd(cmd),
+      'Result.Cmds': ({ cmds }) => sequenceM(cmds, runCmd),
+      'Result.Lit': fail,
+    })
+  )
 
 // Choices
 type ChoiceBranch = { label: string; cmds: Cmd[] }

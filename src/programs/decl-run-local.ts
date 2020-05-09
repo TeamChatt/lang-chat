@@ -21,5 +21,6 @@ export const program: Prog = {
       ]),
     }),
     Cmd.Run(Expr.Var('label2')),
+    Cmd.Run(Expr.Var('label1')),
   ],
 }

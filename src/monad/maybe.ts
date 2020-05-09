@@ -1,4 +1,4 @@
-abstract class Maybe<T> {
+export abstract class Maybe<T> {
   static just<T>(value: T): Maybe<T> {
     return new Just<T>(value)
   }
@@ -48,5 +48,3 @@ class Nothing<T> extends Maybe<T> {
     return defaultValue()
   }
 }
-
-export default Maybe

@@ -3,4 +3,4 @@ import print from './print'
 import { runGame } from './runtime/'
 
 console.log(print(program))
-console.log(runGame(program))
+runGame(program)
