@@ -99,7 +99,11 @@ interface ExprCmds {
 
 // Branch types
 export const Branch = {
-  Choice: (cmds: Cmd[]): ChoiceBranch => ({ kind: 'Branch.Choice', cmds }),
+  Choice: ({ label, cmds }): ChoiceBranch => ({
+    kind: 'Branch.Choice',
+    label,
+    cmds,
+  }),
   Fork: (cmds: Cmd[]): ForkBranch => ({ kind: 'Branch.Fork', cmds }),
   Cond: ({ condition, result }): CondBranch => ({
     kind: 'Branch.Cond',
@@ -110,6 +114,7 @@ export const Branch = {
 
 interface ChoiceBranch {
   kind: 'Branch.Choice'
+  label: string
   cmds: Cmd[]
 }
 
