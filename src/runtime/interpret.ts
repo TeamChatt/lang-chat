@@ -1,58 +1,63 @@
 import { Prog } from '../ast'
-import { Id } from '../monad/id'
+import { IO } from '../monad/io'
 import runProgram from './run'
-import { Action, Interpreter } from './actions'
+import { Action, Runtime } from './actions'
 
 //TODO: how to write types for this
 const match = (obj, cases) => cases[obj.kind](obj)
 
 let state = [{}]
-const interpreter = (action: Action): Id<any> =>
+
+const interpreter = (action: Action): IO<any> =>
   match(action, {
-    'Action.DefineVar': ({ variable, value }) => {
-      state[0][variable] = value
-      return Id.of(null)
-    },
-    'Action.LookupVar': ({ variable }) => {
-      const val = state[variable]
-      return Id.of(val)
-    },
-    'Action.Exec': ({ fn, args }) => {
-      console.log({ fn, args })
-      return Id.of(null)
-    },
+    'Action.DefineVar': ({ variable, value }) =>
+      IO.impure(() => {
+        state[0][variable] = value
+      }),
+    'Action.LookupVar': ({ variable }) =>
+      IO.impure(() => {
+        const val = state[0][variable]
+        return val
+      }),
+    'Action.Exec': ({ fn, args }) =>
+      IO.impure(() => {
+        console.log({ fn, args })
+      }),
     'Action.ForkFirst': ({ branches }) => {
       //TODO: need to make sure each branch gets isolated state
-      const threads = branches.map((branch: Interpreter<any>) =>
+      const threads = branches.map((branch: Runtime<any>) =>
         runInterpreter(branch)
       )
       //TODO: run threads with interleaving
-      return Id.of(null)
+      return IO.of(null)
     },
     'Action.ForkLast': ({ branches }) => {
       //TODO: need to make sure each branch gets isolated state
-      const threads = branches.map((branch: Interpreter<any>) =>
+      const threads = branches.map((branch: Runtime<any>) =>
         runInterpreter(branch)
       )
       //TODO: run threads with interleaving
-      return Id.of(null)
+      return IO.of(null)
     },
     'Action.PromptChoice': ({ branches }) => {
       //TODO: some kinda IO
-      return Id.of(null)
+      return IO.of(null)
     },
-    'Action.PushStack': () => {
-      const clone = Object.assign({}, state[0])
-      state.unshift(clone)
-      return Id.of(null)
-    },
-    'Action.PopStack': () => {
-      state.shift()
-      return Id.of(null)
-    },
+    'Action.PushStack': () =>
+      IO.impure(() => {
+        const clone = Object.assign({}, state[0])
+        state.unshift(clone)
+      }),
+    'Action.PopStack': () =>
+      IO.impure(() => {
+        state.shift()
+      }),
   })
 
-const runInterpreter = (x: Interpreter<any>) => x.foldMap(interpreter, Id.of)
-const interpret = (program: Prog) => runInterpreter(runProgram(program))
+const runInterpreter = (x: Runtime<any>): IO<any> =>
+  x.foldMap(interpreter, IO.of) as IO<any>
+
+const interpret = (program: Prog): IO<any> =>
+  runInterpreter(runProgram(program))
 
 export default interpret

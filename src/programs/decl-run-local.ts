@@ -15,7 +15,7 @@ export const program: Prog = {
         // Shadow the global definition of label1
         Cmd.Def({
           variable: 'label1',
-          value: Expr.Cmds([Cmd.Exec({ fn: 'exec-from-top-local', args: [] })]),
+          value: Expr.Cmds([Cmd.Exec({ fn: 'exec-from-local', args: [] })]),
         }),
         Cmd.Run(Expr.Var('label1')),
       ]),

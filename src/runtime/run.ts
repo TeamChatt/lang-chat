@@ -1,6 +1,6 @@
 import { Prog, Cmd, Expr } from '../ast'
 import {
-  Interpreter,
+  Runtime,
   pure,
   empty,
   defineVar,
@@ -16,10 +16,8 @@ import { Maybe } from '../monad/maybe'
 //TODO: how to write types for this
 const match = (obj, cases) => cases[obj.kind](obj)
 
-const sequenceM = <T>(
-  array: T[],
-  f: (x: T) => Interpreter<any>
-): Interpreter<any> => array.map(f).reduce((p, q) => p.flatMap(() => q), empty)
+const sequenceM = <T>(array: T[], f: (x: T) => Runtime<any>): Runtime<any> =>
+  array.map(f).reduce((p, q) => p.flatMap(() => q), empty)
 
 // Runtime Error
 class RuntimeError extends Error {}
@@ -49,7 +47,7 @@ interface ResultCmds {
 }
 
 // Commands
-const runCmd = (cmd: Cmd): Interpreter<any> =>
+const runCmd = (cmd: Cmd): Runtime<any> =>
   match(cmd, {
     'Cmd.Exec': ({ fn, args }) => exec({ fn, args }),
     'Cmd.Run': ({ expr }) => evalExpr(expr).flatMap(runResult),
@@ -61,14 +59,14 @@ const runCmd = (cmd: Cmd): Interpreter<any> =>
     'Cmd.ForkLast': ({ branches }) => forkLast(branches.map(runBranch)),
   })
 
-const runBranch = (branch): Interpreter<any> =>
+const runBranch = (branch): Runtime<any> =>
   match(branch, {
     'Branch.Choice': ({ label, cmds }) => sequenceM(cmds, runCmd),
     'Branch.Fork': ({ cmds }) => sequenceM(cmds, runCmd),
     'Branch.Cond': fail,
   })
 
-const runResult = (result: Result): Interpreter<any> =>
+const runResult = (result: Result): Runtime<any> =>
   scoped(
     match(result, {
       'Result.Cmd': ({ cmd }) => runCmd(cmd),
@@ -86,12 +84,12 @@ const toPrompt = ({ label }: ChoiceBranch, index: number) => ({
 })
 const fromPrompt = (choices: ChoiceBranch[]) => ({ index }) => choices[index]
 
-const runChooseOne = (choices: ChoiceBranch[]): Interpreter<ChoiceBranch> =>
+const runChooseOne = (choices: ChoiceBranch[]): Runtime<ChoiceBranch> =>
   promptChoice(choices.map(toPrompt))
     .map(fromPrompt(choices))
     .flatMap((choice) => runBranch(choice).map(() => choice))
 
-const runChooseAll = (choices: ChoiceBranch[]): Interpreter<any> =>
+const runChooseAll = (choices: ChoiceBranch[]): Runtime<any> =>
   choices.length === 0
     ? empty
     : runChooseOne(choices)
@@ -99,7 +97,7 @@ const runChooseAll = (choices: ChoiceBranch[]): Interpreter<any> =>
         .flatMap(runChooseAll)
 
 // Expressions
-const evalExpr = (expr: Expr): Interpreter<Result> =>
+const evalExpr = (expr: Expr): Runtime<Result> =>
   match(expr, {
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(Result.Lit(value)),
@@ -108,8 +106,8 @@ const evalExpr = (expr: Expr): Interpreter<Result> =>
     'Expr.Cond': ({ branches }) => evalBranches(branches),
   })
 
-type BranchResult = Interpreter<Maybe<Expr>>
-const evalBranches = (branches: any[]): Interpreter<Result> =>
+type BranchResult = Runtime<Maybe<Expr>>
+const evalBranches = (branches: any[]): Runtime<Result> =>
   branches
     .reduce<BranchResult>(
       (acc, branch) =>
@@ -139,7 +137,7 @@ const getResult = (result: Result) =>
   })
 
 // Program
-const runProgram = ({ commands }: Prog): Interpreter<Result> =>
+const runProgram = ({ commands }: Prog): Runtime<Result> =>
   sequenceM(commands, runCmd)
 
 export default runProgram
