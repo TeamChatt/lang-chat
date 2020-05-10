@@ -1,4 +1,4 @@
-import { program } from './programs/decl-run-local'
+import { program } from './programs/fork-last'
 import print from './print'
 import { runGame } from './runtime/'
 

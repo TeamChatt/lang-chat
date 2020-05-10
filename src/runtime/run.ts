@@ -1,4 +1,5 @@
 import { Prog, Cmd, Expr } from '../ast'
+import { Maybe } from '../monad/maybe'
 import {
   Runtime,
   pure,
@@ -11,7 +12,6 @@ import {
   promptChoice,
   scoped,
 } from './actions'
-import { Maybe } from '../monad/maybe'
 
 //TODO: how to write types for this
 const match = (obj, cases) => cases[obj.kind](obj)

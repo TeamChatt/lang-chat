@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "strict": false,
+    "incremental": true,
+    "lib": ["dom", "es2015", "esnext.asynciterable"],
+    "baseUrl": ".",
+    "paths": {
+      "~*": ["./src/*"]
+    }
+  }
+}
