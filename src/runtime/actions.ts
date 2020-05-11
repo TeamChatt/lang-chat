@@ -6,7 +6,7 @@ export type Action =
   | ActionLookupVar
   | ActionExec
   | ActionForkFirst
-  | ActionForkLast
+  | ActionForkAll
   | ActionPromptChoice
   | ActionPushStack
   | ActionPopStack
@@ -29,8 +29,8 @@ interface ActionForkFirst {
   kind: 'Action.ForkFirst'
   branches: Runtime<any>[]
 }
-interface ActionForkLast {
-  kind: 'Action.ForkLast'
+interface ActionForkAll {
+  kind: 'Action.ForkAll'
   branches: Runtime<any>[]
 }
 interface ActionPromptChoice {
@@ -73,8 +73,8 @@ export const scoped = <R>(action: Runtime<R>) =>
 export const forkFirst = <R>(branches: Runtime<R>[]): Runtime<R> =>
   Free.lift({ kind: 'Action.ForkFirst', branches })
 
-export const forkLast = <R>(branches: Runtime<R>[]): Runtime<R> =>
-  Free.lift({ kind: 'Action.ForkLast', branches })
+export const forkAll = <R>(branches: Runtime<R>[]): Runtime<R> =>
+  Free.lift({ kind: 'Action.ForkAll', branches })
 
 export const promptChoice = <R>(branches: any[]): Runtime<R> =>
   Free.lift({ kind: 'Action.PromptChoice', branches })

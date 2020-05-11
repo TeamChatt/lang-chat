@@ -2,9 +2,9 @@ import { Prog } from '../ast'
 import { AsyncIO } from '../monad/async-io'
 import runProgram from './run'
 import { Action, Runtime } from './actions'
+import { after } from 'fluture'
 
-const wait = (seconds) =>
-  new Promise((resolve) => window.setTimeout(resolve, seconds * 1000))
+const wait = (seconds) => AsyncIO.fromFuture(after(1000 * seconds)(null))
 
 //TODO: how to write types for this
 const match = (obj, cases) => cases[obj.kind](obj)
@@ -14,47 +14,47 @@ let state = [{}]
 const interpreter = (action: Action): AsyncIO<any> =>
   match(action, {
     'Action.DefineVar': ({ variable, value }) =>
-      AsyncIO.impure(async () => {
+      AsyncIO.fromPromise(async () => {
         state[0][variable] = value
       }),
     'Action.LookupVar': ({ variable }) =>
-      AsyncIO.impure(async () => {
+      AsyncIO.fromPromise(async () => {
         const val = state[0][variable]
         return val
       }),
     'Action.Exec': ({ fn, args }) =>
-      AsyncIO.impure(async () => {
-        await wait(3)
-        console.log({ fn, args })
-      }),
+      wait(3).flatMap(() =>
+        AsyncIO.fromPromise(async () => {
+          console.log({ fn, args })
+        })
+      ),
     'Action.ForkFirst': ({ branches }) => {
-      //TODO: need to make sure each branch gets isolated state
-      const threads = branches.map((branch: Runtime<any>) =>
-        runInterpreter(branch)
-      )
-      //TODO: make sure we can interrupt threads
-      return AsyncIO.interleave(threads)
-    },
-    'Action.ForkLast': ({ branches }) => {
       //TODO: need to make sure each branch gets isolated state
       const threads = branches.map((branch: Runtime<any>) =>
         runInterpreter(branch)
       )
       return AsyncIO.race(threads)
     },
+    'Action.ForkAll': ({ branches }) => {
+      //TODO: need to make sure each branch gets isolated state
+      const threads = branches.map((branch: Runtime<any>) =>
+        runInterpreter(branch)
+      )
+      return AsyncIO.interleave(threads)
+    },
     'Action.PromptChoice': ({ branches }) =>
-      AsyncIO.impure(async () => {
+      AsyncIO.fromPromise(async () => {
         //TODO: some kinda IO
         //let user pick a branch somehow
         return branches[0]
       }),
     'Action.PushStack': () =>
-      AsyncIO.impure(async () => {
+      AsyncIO.fromPromise(async () => {
         const clone = Object.assign({}, state[0])
         state.unshift(clone)
       }),
     'Action.PopStack': () =>
-      AsyncIO.impure(async () => {
+      AsyncIO.fromPromise(async () => {
         state.shift()
       }),
   })

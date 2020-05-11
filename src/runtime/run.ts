@@ -8,7 +8,7 @@ import {
   lookupVar,
   exec,
   forkFirst,
-  forkLast,
+  forkAll,
   promptChoice,
   scoped,
 } from './actions'
@@ -56,7 +56,7 @@ const runCmd = (cmd: Cmd): Runtime<any> =>
     'Cmd.ChooseOne': ({ branches }) => runChooseOne(branches),
     'Cmd.ChooseAll': ({ branches }) => runChooseAll(branches),
     'Cmd.ForkFirst': ({ branches }) => forkFirst(branches.map(runBranch)),
-    'Cmd.ForkLast': ({ branches }) => forkLast(branches.map(runBranch)),
+    'Cmd.ForkAll': ({ branches }) => forkAll(branches.map(runBranch)),
   })
 
 const runBranch = (branch): Runtime<any> =>

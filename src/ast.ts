@@ -19,8 +19,8 @@ export const Cmd = {
     kind: 'Cmd.ForkFirst',
     branches,
   }),
-  ForkLast: (branches: ForkBranch[]): CmdForkLast => ({
-    kind: 'Cmd.ForkLast',
+  ForkAll: (branches: ForkBranch[]): CmdForkAll => ({
+    kind: 'Cmd.ForkAll',
     branches,
   }),
 }
@@ -32,7 +32,7 @@ export type Cmd =
   | CmdChooseOne
   | CmdChooseAll
   | CmdForkFirst
-  | CmdForkLast
+  | CmdForkAll
 
 interface CmdExec {
   kind: 'Cmd.Exec'
@@ -60,8 +60,8 @@ interface CmdForkFirst {
   kind: 'Cmd.ForkFirst'
   branches: ForkBranch[]
 }
-interface CmdForkLast {
-  kind: 'Cmd.ForkLast'
+interface CmdForkAll {
+  kind: 'Cmd.ForkAll'
   branches: ForkBranch[]
 }
 

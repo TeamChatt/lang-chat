@@ -2265,6 +2265,14 @@ find-up@^3.0.0:
   dependencies:
     locate-path "^3.0.0"
 
+fluture@^12.2.0:
+  version "12.2.0"
+  resolved "https://registry.yarnpkg.com/fluture/-/fluture-12.2.0.tgz#40de127c88a4cb845b9f2292b89b91f53784a6bc"
+  integrity sha512-3Hs5gGA5/o1Fkz7jXndR6FStKD3VXJdto8WWvSMY5MRm0u6tJ51kxn/V+hpbSkkSlYd7TZ0hUVJ07iJPP7DS2w==
+  dependencies:
+    sanctuary-show "^2.0.0"
+    sanctuary-type-identifiers "^2.0.0"
+
 for-in@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
@@ -4392,6 +4400,16 @@ safe-regex@^1.1.0:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
+
+sanctuary-show@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/sanctuary-show/-/sanctuary-show-2.0.0.tgz#2326b4744f4b0f993f18ca56a29f68a50f514637"
+  integrity sha512-REj4ZiioUXnDLj6EpJ9HcYDIEGaEexmB9Fg5o6InZR9f0x5PfnnC21QeU9SZ9E7G8zXSZPNjy8VRUK4safbesw==
+
+sanctuary-type-identifiers@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/sanctuary-type-identifiers/-/sanctuary-type-identifiers-2.0.1.tgz#fc524cf6dd92cebfcbb0dd9509eff193159a20ed"
+  integrity sha1-/FJM9t2Szr/LsN2VCe/xkxWaIO0=
 
 sax@~1.2.4:
   version "1.2.4"

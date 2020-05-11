@@ -41,8 +41,8 @@ const printCmd = (cmd: Cmd): Doc<string> =>
       seq([str('choose-all'), printBranches(branches)]),
     'Cmd.ForkFirst': ({ branches }) =>
       seq([str('fork-first'), printBranches(branches)]),
-    'Cmd.ForkLast': ({ branches }) =>
-      seq([str('fork-last'), printBranches(branches)]),
+    'Cmd.ForkAll': ({ branches }) =>
+      seq([str('fork-all'), printBranches(branches)]),
   })
 
 // Expressions
