@@ -7,6 +7,7 @@ import {
 import { Result } from './interpreter'
 
 export type RuntimeContext = CtxSeq | CtxParFirst | CtxParAll
+export type ParallelRuntimeContext = CtxParFirst | CtxParAll
 
 interface CtxSeq {
   kind: 'RuntimeContext.Seq'
@@ -26,19 +27,19 @@ interface CtxParAll {
 
 const match = (obj, cases) => cases[obj.kind](obj)
 
-export const ctxSeq = ({ bindings, stack }): RuntimeContext => ({
+const ctxSeq = ({ bindings, stack }): RuntimeContext => ({
   kind: 'RuntimeContext.Seq',
   bindings,
   stack,
 })
 
-export const ctxParFirst = ({ threads, stack }): RuntimeContext => ({
+const ctxParFirst = ({ threads, stack }): ParallelRuntimeContext => ({
   kind: 'RuntimeContext.ParFirst',
   threads,
   stack,
 })
 
-export const ctxParAll = ({ threads, stack }): RuntimeContext => ({
+const ctxParAll = ({ threads, stack }): ParallelRuntimeContext => ({
   kind: 'RuntimeContext.ParAll',
   threads,
   stack,
@@ -77,11 +78,43 @@ export const pushStack = (rt: RuntimeContext): RuntimeContext =>
     }),
   })
 
-export const spawn = (rt: RuntimeContext): RuntimeContext =>
+const spawn = (rt: RuntimeContext): RuntimeContext =>
   match(rt, {
     'RuntimeContext.Seq': ({ bindings }) => ({
       kind: 'RuntimeContext.Seq',
       bindings,
       stack: null,
     }),
+  })
+
+export const forkFirst = (count: number) => (
+  rt: RuntimeContext
+): ParallelRuntimeContext =>
+  ctxParFirst({
+    threads: new Array(count).fill(spawn(rt)),
+    stack: rt,
+  })
+
+export const forkAll = (count: number) => (
+  rt: RuntimeContext
+): ParallelRuntimeContext =>
+  ctxParFirst({
+    threads: new Array(count).fill(spawn(rt)),
+    stack: rt,
+  })
+
+export const stepParallel = (newThreads: RuntimeContext[]) => (
+  rt: ParallelRuntimeContext
+): ParallelRuntimeContext =>
+  match(rt, {
+    'RuntimeContext.ParFirst': ({ stack }) =>
+      ctxParFirst({
+        threads: newThreads,
+        stack,
+      }),
+    'RuntimeContext.ParAll': ({ stack }) =>
+      ctxParAll({
+        threads: newThreads,
+        stack,
+      }),
   })

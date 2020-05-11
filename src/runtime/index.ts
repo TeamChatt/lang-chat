@@ -7,4 +7,4 @@ import { empty } from './runtime-context'
 const defaultState = empty
 
 export const runGame = (program: Prog): Iterable<Output> =>
-  runInterpreter(runProg(program)).runThread(defaultState)
+  runInterpreter(runProg(program)).run(defaultState)
