@@ -5,4 +5,6 @@ import { runGame } from './runtime'
 console.log(print(program))
 
 const io = runGame(program)
-io.run()
+for (const effect of io) {
+  effect()
+}

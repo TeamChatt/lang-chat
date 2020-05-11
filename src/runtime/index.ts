@@ -1,7 +1,9 @@
-import { AsyncIO } from '../monad/async-io'
+import { Effect } from './runtime-sync'
 import { Prog } from '../ast'
 import { runProg } from './run-prog'
 import { runInterpreter } from './run-interpreter'
 
-export const runGame = (program: Prog): AsyncIO<any> =>
-  runInterpreter(runProg(program))
+const defaultState = {}
+
+export const runGame = (program: Prog): Iterable<Effect> =>
+  runInterpreter(runProg(program)).runThread(defaultState)
