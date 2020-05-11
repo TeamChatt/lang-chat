@@ -1,4 +1,26 @@
 import { Free } from '../monad/free'
+import { Cmd } from '../ast'
+
+// Result types
+export const Result = {
+  Lit: (value: any) => ({ kind: 'Result.Lit', value }),
+  Cmd: (cmd: Cmd) => ({ kind: 'Result.Cmd', cmd }),
+  Cmds: (cmds: Cmd[]) => ({ kind: 'Result.Cmds', cmds }),
+}
+export type Result = ResultLit | ResultCmd | ResultCmds
+
+interface ResultLit {
+  kind: 'Result.Lit'
+  value: any
+}
+interface ResultCmd {
+  kind: 'Result.Cmd'
+  cmd: Cmd
+}
+interface ResultCmds {
+  kind: 'Result.Cmds'
+  cmds: Cmd[]
+}
 
 // Actions
 export type Action =
@@ -49,9 +71,9 @@ type PromptChoice = {
   index: number
 }
 
+// Action creators
 export type Interpreter<R> = Free<Action, R>
 
-// Actions
 export const empty: Interpreter<any> = Free.pure(null)
 
 export const pure = <R>(v: R): Interpreter<R> => Free.pure(v)

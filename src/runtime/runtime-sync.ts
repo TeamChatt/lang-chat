@@ -1,31 +1,28 @@
-type RuntimeState = {}
+import {
+  RuntimeContext,
+  lookupVar,
+  defineVar,
+  pushStack,
+  popStack,
+  spawn,
+} from './runtime-context'
 
-const bindVar = (
-  variable: string,
-  value: any,
-  state: RuntimeState
-): RuntimeState => ({
-  [variable]: value,
-  ...state,
-})
-
-const lookupVar = (variable: string, state: RuntimeState): any =>
-  state[variable]
+export type Effect = () => any
+export type Output = [RuntimeContext, Effect]
 
 type RuntimeEffects<T> = {
   value: T
-  state: RuntimeState
-  [Symbol.iterator]: () => Iterator<Effect>
+  state: RuntimeContext
+  [Symbol.iterator]: () => Iterator<Output>
 }
 
-export type Effect = () => any
-
 export class RuntimeSync<T> {
-  readonly runThread: (state: RuntimeState) => RuntimeEffects<T>
+  readonly runThread: (state: RuntimeContext) => RuntimeEffects<T>
 
-  constructor(runThread: (state: RuntimeState) => RuntimeEffects<T>) {
+  constructor(runThread: (state: RuntimeContext) => RuntimeEffects<T>) {
     this.runThread = runThread
   }
+  // Factory Methods
   static of<T>(value: T): RuntimeSync<T> {
     return new RuntimeSync((state) => ({
       value,
@@ -38,19 +35,20 @@ export class RuntimeSync<T> {
       value: undefined,
       state,
       *[Symbol.iterator]() {
-        yield io
+        yield [state, io]
       },
     }))
   }
   // Concurrency
   static forkFirst<T>(processes: RuntimeSync<T>[]): RuntimeSync<undefined> {
     const runProcesses = (state) => {
-      const effects = processes.map((t) => t.runThread(state))
+      const newState = spawn(state)
+      const effects = processes.map((t) => t.runThread(newState))
       return {
         value: undefined,
         state,
         *[Symbol.iterator]() {
-          yield* runUntilFirst(effects)
+          yield* [] // TODO: runUntilFirst(effects)
         },
       }
     }
@@ -58,12 +56,13 @@ export class RuntimeSync<T> {
   }
   static forkAll<T>(processes: RuntimeSync<T>[]): RuntimeSync<undefined> {
     const runProcesses = (state) => {
-      const effects = processes.map((t) => t.runThread(state))
+      const newState = spawn(state)
+      const effects = processes.map((t) => t.runThread(newState))
       return {
         value: undefined,
         state,
         *[Symbol.iterator]() {
-          yield* runAll(effects)
+          yield* [] // TODO: runAll(effects)
         },
       }
     }
@@ -73,40 +72,40 @@ export class RuntimeSync<T> {
   static pushStack(): RuntimeSync<undefined> {
     return new RuntimeSync((state) => ({
       value: undefined,
-      state, //TODO: need to push to stack
+      state: pushStack(state),
       *[Symbol.iterator]() {},
     }))
   }
   static popStack(): RuntimeSync<undefined> {
     return new RuntimeSync((state) => ({
       value: undefined,
-      state, //TODO: need to pop from stack
+      state: popStack(state),
       *[Symbol.iterator]() {},
     }))
   }
   static defineVar(variable: string, value): RuntimeSync<undefined> {
     return new RuntimeSync((state) => ({
       value: undefined,
-      state: bindVar(variable, value, state),
+      state: defineVar(variable, value)(state),
       *[Symbol.iterator]() {},
     }))
   }
   static lookupVar(variable: string): RuntimeSync<any> {
     return new RuntimeSync((state) => ({
-      value: lookupVar(variable, state),
+      value: lookupVar(variable)(state),
       state,
       *[Symbol.iterator]() {},
     }))
   }
 
   map<R>(f: (t: T) => R): RuntimeSync<R> {
-    const runMap = (state: RuntimeState) => {
-      const output = this.runThread(state)
+    const runMap = (state: RuntimeContext) => {
+      const effects = this.runThread(state)
       return {
-        value: f(output.value),
-        state: output.state,
+        value: f(effects.value),
+        state: effects.state,
         *[Symbol.iterator]() {
-          yield* output
+          yield* effects
         },
       }
     }
@@ -116,7 +115,7 @@ export class RuntimeSync<T> {
   //TODO: is there a better way to type this?
   flatten<S>(): RuntimeSync<S> {
     const { runThread } = (this as unknown) as RuntimeSync<RuntimeSync<S>>
-    const runInner = (state: RuntimeState) => {
+    const runInner = (state: RuntimeContext) => {
       const outer = runThread(state)
       const inner = outer.value.runThread(outer.state)
 
@@ -138,8 +137,8 @@ export class RuntimeSync<T> {
 }
 
 // Iterable concurrency
-function* runUntilFirst(iterables: Iterable<Effect>[]) {
-  let iterators: Iterator<Effect>[] = iterables.map((p) => p[Symbol.iterator]())
+function* runUntilFirst<T>(iterables: Iterable<T>[]) {
+  let iterators = iterables.map((p) => p[Symbol.iterator]())
   // Interleave processes round-robin style
   while (iterators.length > 0) {
     const [i, ...rest] = iterators
@@ -152,8 +151,8 @@ function* runUntilFirst(iterables: Iterable<Effect>[]) {
     }
   }
 }
-function* runAll(iterables: Iterable<Effect>[]) {
-  let iterators: Iterator<Effect>[] = iterables.map((p) => p[Symbol.iterator]())
+function* runAll<T>(iterables: Iterable<T>[]) {
+  let iterators = iterables.map((p) => p[Symbol.iterator]())
   // Interleave processes round-robin style
   while (iterators.length > 0) {
     const [i, ...rest] = iterators

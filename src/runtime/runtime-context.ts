@@ -1,4 +1,10 @@
-export type BindingContext = {}
+import {
+  BindingContext,
+  empty as bindingEmpty,
+  defineVar as bindingDefineVar,
+  lookupVar as bindingLookupVar,
+} from './binding-context'
+import { Result } from './interpreter'
 
 export type RuntimeContext = CtxSeq | CtxParFirst | CtxParAll
 
@@ -37,6 +43,28 @@ export const ctxParAll = ({ threads, stack }): RuntimeContext => ({
   threads,
   stack,
 })
+
+export const empty: RuntimeContext = ctxSeq({
+  bindings: bindingEmpty,
+  stack: null,
+})
+
+export const defineVar = (variable: string, value: Result) => (
+  rt: RuntimeContext
+): RuntimeContext =>
+  match(rt, {
+    'RuntimeContext.Seq': ({ bindings, stack }) =>
+      ctxSeq({
+        bindings: bindingDefineVar(variable, value)(bindings),
+        stack,
+      }),
+  })
+
+export const lookupVar = (variable: string) => (rt: RuntimeContext): Result =>
+  match(rt, {
+    'RuntimeContext.Seq': ({ bindings }) =>
+      bindingLookupVar(variable)(bindings),
+  })
 
 export const popStack = (rt: RuntimeContext): RuntimeContext => rt.stack
 

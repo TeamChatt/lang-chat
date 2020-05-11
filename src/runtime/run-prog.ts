@@ -1,6 +1,7 @@
 import { Prog, Cmd, Expr } from '../ast'
 import { Maybe } from '../monad/maybe'
 import {
+  Result,
   Interpreter,
   pure,
   empty,
@@ -25,27 +26,6 @@ const sequenceM = <T>(
 class TypeError extends Error {}
 const fail = () => {
   throw new TypeError()
-}
-
-// Result types
-const Result = {
-  Lit: (value: any) => ({ kind: 'Result.Lit', value }),
-  Cmd: (cmd: Cmd) => ({ kind: 'Result.Cmd', cmd }),
-  Cmds: (cmds: Cmd[]) => ({ kind: 'Result.Cmds', cmds }),
-}
-type Result = ResultLit | ResultCmd | ResultCmds
-
-interface ResultLit {
-  kind: 'Result.Lit'
-  value: any
-}
-interface ResultCmd {
-  kind: 'Result.Cmd'
-  cmd: Cmd
-}
-interface ResultCmds {
-  kind: 'Result.Cmds'
-  cmds: Cmd[]
 }
 
 // Commands
