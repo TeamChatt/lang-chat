@@ -1,7 +1,5 @@
-import { Prog } from '../ast'
 import { AsyncIO } from '../monad/async-io'
-import runProgram from './run'
-import { Action, Runtime } from './actions'
+import { Action, Interpreter } from './interpreter'
 import { after } from 'fluture'
 
 const wait = (seconds) => AsyncIO.fromFuture(after(1000 * seconds)(null))
@@ -11,7 +9,7 @@ const match = (obj, cases) => cases[obj.kind](obj)
 
 let state = [{}]
 
-const interpreter = (action: Action): AsyncIO<any> =>
+const runAction = (action: Action): AsyncIO<any> =>
   match(action, {
     'Action.DefineVar': ({ variable, value }) =>
       AsyncIO.fromPromise(async () => {
@@ -30,14 +28,14 @@ const interpreter = (action: Action): AsyncIO<any> =>
       ),
     'Action.ForkFirst': ({ branches }) => {
       //TODO: need to make sure each branch gets isolated state
-      const threads = branches.map((branch: Runtime<any>) =>
+      const threads = branches.map((branch: Interpreter<any>) =>
         runInterpreter(branch)
       )
       return AsyncIO.race(threads)
     },
     'Action.ForkAll': ({ branches }) => {
       //TODO: need to make sure each branch gets isolated state
-      const threads = branches.map((branch: Runtime<any>) =>
+      const threads = branches.map((branch: Interpreter<any>) =>
         runInterpreter(branch)
       )
       return AsyncIO.interleave(threads)
@@ -59,10 +57,5 @@ const interpreter = (action: Action): AsyncIO<any> =>
       }),
   })
 
-const runInterpreter = (x: Runtime<any>): AsyncIO<any> =>
-  x.foldMap(interpreter, AsyncIO.of) as AsyncIO<any>
-
-const interpret = (program: Prog): AsyncIO<any> =>
-  runInterpreter(runProgram(program))
-
-export default interpret
+export const runInterpreter = (x: Interpreter<any>): AsyncIO<any> =>
+  x.foldMap(runAction, AsyncIO.of) as AsyncIO<any>

@@ -27,11 +27,11 @@ interface ActionExec {
 }
 interface ActionForkFirst {
   kind: 'Action.ForkFirst'
-  branches: Runtime<any>[]
+  branches: Interpreter<any>[]
 }
 interface ActionForkAll {
   kind: 'Action.ForkAll'
-  branches: Runtime<any>[]
+  branches: Interpreter<any>[]
 }
 interface ActionPromptChoice {
   kind: 'Action.PromptChoice'
@@ -49,36 +49,36 @@ type PromptChoice = {
   index: number
 }
 
-export type Runtime<R> = Free<Action, R>
+export type Interpreter<R> = Free<Action, R>
 
 // Actions
-export const empty: Runtime<any> = Free.pure(null)
+export const empty: Interpreter<any> = Free.pure(null)
 
-export const pure = <R>(v: R): Runtime<R> => Free.pure(v)
+export const pure = <R>(v: R): Interpreter<R> => Free.pure(v)
 
 // Variable lookup
-export const defineVar = <R>(variable: string, value: any): Runtime<R> =>
+export const defineVar = <R>(variable: string, value: any): Interpreter<R> =>
   Free.lift({ kind: 'Action.DefineVar', variable, value })
 
-export const lookupVar = <R>(variable): Runtime<R> =>
+export const lookupVar = <R>(variable): Interpreter<R> =>
   Free.lift({ kind: 'Action.LookupVar', variable })
 
 // Control Flow
-const pushStack: Runtime<any> = Free.lift({ kind: 'Action.PushStack' })
-const popStack: Runtime<any> = Free.lift({ kind: 'Action.PopStack' })
+const pushStack: Interpreter<any> = Free.lift({ kind: 'Action.PushStack' })
+const popStack: Interpreter<any> = Free.lift({ kind: 'Action.PopStack' })
 
-export const scoped = <R>(action: Runtime<R>) =>
+export const scoped = <R>(action: Interpreter<R>) =>
   pushStack.flatMap(() => action).flatMap(() => popStack)
 
-export const forkFirst = <R>(branches: Runtime<R>[]): Runtime<R> =>
+export const forkFirst = <R>(branches: Interpreter<R>[]): Interpreter<R> =>
   Free.lift({ kind: 'Action.ForkFirst', branches })
 
-export const forkAll = <R>(branches: Runtime<R>[]): Runtime<R> =>
+export const forkAll = <R>(branches: Interpreter<R>[]): Interpreter<R> =>
   Free.lift({ kind: 'Action.ForkAll', branches })
 
-export const promptChoice = <R>(branches: any[]): Runtime<R> =>
+export const promptChoice = <R>(branches: any[]): Interpreter<R> =>
   Free.lift({ kind: 'Action.PromptChoice', branches })
 
 // User defined commands
-export const exec = <R>({ fn, args }): Runtime<R> =>
+export const exec = <R>({ fn, args }): Interpreter<R> =>
   Free.lift({ kind: 'Action.Exec', fn, args })
