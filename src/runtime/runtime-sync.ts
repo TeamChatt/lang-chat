@@ -1,12 +1,13 @@
+import { Loc } from '../static/ast'
 import {
   RuntimeContext,
-  ParallelRuntimeContext,
   lookupVar,
   defineVar,
   pushStack,
   popStack,
   forkFirst,
   forkAll,
+  stepSeq,
   stepParallel,
 } from './runtime-context'
 
@@ -17,6 +18,11 @@ type RuntimeEffects<T> = {
   value: T
   context: RuntimeContext
   [Symbol.iterator]: () => Iterator<Output>
+}
+
+export type RuntimeSyncThread<R> = {
+  runtime: RuntimeSync<R>
+  loc: Loc
 }
 
 export class RuntimeSync<T> {
@@ -33,32 +39,32 @@ export class RuntimeSync<T> {
       *[Symbol.iterator]() {},
     }))
   }
-  static fromEffect(io: Effect): RuntimeSync<undefined> {
+  static fromEffect(io: Effect, loc: Loc): RuntimeSync<undefined> {
     return new RuntimeSync((context) => ({
       value: undefined,
-      context,
+      context: stepSeq(loc)(context),
       *[Symbol.iterator]() {
         yield [context, io]
       },
     }))
   }
   // Concurrency
-  static forkFirst<T>(processes: RuntimeSync<T>[]): RuntimeSync<undefined> {
+  static forkFirst<T>(threads: RuntimeSyncThread<T>[]): RuntimeSync<undefined> {
     const runProcesses = (context) => ({
       value: undefined,
       context,
       *[Symbol.iterator]() {
-        yield* runUntilFirst(processes, context)
+        yield* runUntilFirst(threads, context)
       },
     })
     return new RuntimeSync(runProcesses)
   }
-  static forkAll<T>(processes: RuntimeSync<T>[]): RuntimeSync<undefined> {
+  static forkAll<T>(threads: RuntimeSyncThread<T>[]): RuntimeSync<undefined> {
     const runProcesses = (context) => ({
       value: undefined,
       context,
       *[Symbol.iterator]() {
-        yield* runAll(processes, context)
+        yield* runAll(threads, context)
       },
     })
     return new RuntimeSync(runProcesses)
@@ -133,13 +139,13 @@ export class RuntimeSync<T> {
 
 // Thread concurrency
 function* runUntilFirst<T>(
-  processes: RuntimeSync<T>[],
+  threads: RuntimeSyncThread<T>[],
   context: RuntimeContext
 ): Generator<Output> {
-  let parallelContext = forkFirst(processes.length)(context)
-  let threadQueue = processes.map((t, i) =>
-    t.run(parallelContext.threads[i])[Symbol.iterator]()
-  )
+  let parallelContext = forkFirst(threads.map((t) => t.loc))(context)
+  let threadQueue = threads
+    .map((t) => t.runtime)
+    .map((t, i) => t.run(parallelContext.threads[i])[Symbol.iterator]())
   let contextQueue = parallelContext.threads
 
   // Interleave processes round-robin style
@@ -161,13 +167,13 @@ function* runUntilFirst<T>(
 }
 
 function* runAll<T>(
-  processes: RuntimeSync<T>[],
+  threads: RuntimeSyncThread<T>[],
   context: RuntimeContext
 ): Generator<Output> {
-  let parallelContext = forkAll(processes.length)(context)
-  let threadQueue = processes.map((t, i) =>
-    t.run(parallelContext.threads[i])[Symbol.iterator]()
-  )
+  let parallelContext = forkAll(threads.map((t) => t.loc))(context)
+  let threadQueue = threads
+    .map((t) => t.runtime)
+    .map((t, i) => t.run(parallelContext.threads[i])[Symbol.iterator]())
   let contextQueue = parallelContext.threads
 
   // Interleave processes round-robin style

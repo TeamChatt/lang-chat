@@ -1,4 +1,4 @@
-import { Prog, Cmd, Expr } from '../static/ast'
+import { Prog, Cmd, Expr, Loc } from '../static/ast'
 import { Maybe } from '../monad/maybe'
 import {
   Result,
@@ -31,22 +31,36 @@ const fail = () => {
 // Commands
 const runCmd = (cmd: Cmd): Interpreter<any> =>
   match(cmd, {
-    'Cmd.Exec': ({ fn, args }) => exec({ fn, args }),
+    'Cmd.Exec': ({ fn, args, loc }) => exec({ fn, args, loc }),
     'Cmd.Run': ({ expr }) => evalExpr(expr).flatMap(runResult),
     'Cmd.Def': ({ variable, value }) =>
       evalExpr(value).flatMap((result) => defineVar(variable, result)),
-    'Cmd.ChooseOne': ({ branches }) => runChooseOne(branches),
-    'Cmd.ChooseAll': ({ branches }) => runChooseAll(branches),
-    'Cmd.ForkFirst': ({ branches }) => forkFirst(branches.map(runBranch)),
-    'Cmd.ForkAll': ({ branches }) => forkAll(branches.map(runBranch)),
+    'Cmd.ChooseOne': ({ branches, loc }) => runChooseOne(branches, loc),
+    'Cmd.ChooseAll': ({ branches, loc }) => runChooseAll(branches, loc),
+    'Cmd.ForkFirst': ({ branches }) =>
+      forkFirst(
+        branches.map((branch) => ({
+          interpreter: runBranch(branch),
+          loc: branchLoc(branch),
+        }))
+      ),
+    'Cmd.ForkAll': ({ branches }) =>
+      forkAll(
+        branches.map((branch) => ({
+          interpreter: runBranch(branch),
+          loc: branchLoc(branch),
+        }))
+      ),
   })
 
 const runBranch = (branch): Interpreter<any> =>
   match(branch, {
-    'Branch.Choice': ({ label, cmds }) => sequenceM(cmds, runCmd),
-    'Branch.Fork': ({ cmds }) => sequenceM(cmds, runCmd),
+    'Branch.Choice': ({ cmdExpr }) => evalExpr(cmdExpr).flatMap(runResult),
+    'Branch.Fork': ({ cmdExpr }) => evalExpr(cmdExpr).flatMap(runResult),
     'Branch.Cond': fail,
   })
+
+const branchLoc = (branch): Loc => branch.loc
 
 const runResult = (result: Result): Interpreter<any> =>
   scoped(
@@ -66,17 +80,20 @@ const toPrompt = ({ label }: ChoiceBranch, index: number) => ({
 })
 const fromPrompt = (choices: ChoiceBranch[]) => ({ index }) => choices[index]
 
-const runChooseOne = (choices: ChoiceBranch[]): Interpreter<ChoiceBranch> =>
-  promptChoice(choices.map(toPrompt))
+const runChooseOne = (
+  choices: ChoiceBranch[],
+  loc: Loc
+): Interpreter<ChoiceBranch> =>
+  promptChoice(choices.map(toPrompt), loc)
     .map(fromPrompt(choices))
     .flatMap((choice) => runBranch(choice).map(() => choice))
 
-const runChooseAll = (choices: ChoiceBranch[]): Interpreter<any> =>
+const runChooseAll = (choices: ChoiceBranch[], loc: Loc): Interpreter<any> =>
   choices.length === 0
     ? empty
-    : runChooseOne(choices)
+    : runChooseOne(choices, loc) //TODO: loc needs to account for which choices were already used
         .map((choice) => choices.filter((c) => c.label !== choice.label))
-        .flatMap(runChooseAll)
+        .flatMap((choices) => runChooseAll(choices, loc))
 
 // Expressions
 const evalExpr = (expr: Expr): Interpreter<Result> =>

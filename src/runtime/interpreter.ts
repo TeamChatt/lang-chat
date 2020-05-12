@@ -1,5 +1,5 @@
 import { Free } from '../monad/free'
-import { Cmd } from '../static/ast'
+import { Cmd, Loc } from '../static/ast'
 
 // Result types
 export const Result = {
@@ -46,18 +46,20 @@ interface ActionExec {
   kind: 'Action.Exec'
   fn: string
   args: string[]
+  loc: Loc
 }
 interface ActionForkFirst {
   kind: 'Action.ForkFirst'
-  branches: Interpreter<any>[]
+  branches: InterpreterThread<any>[]
 }
 interface ActionForkAll {
   kind: 'Action.ForkAll'
-  branches: Interpreter<any>[]
+  branches: InterpreterThread<any>[]
 }
 interface ActionPromptChoice {
   kind: 'Action.PromptChoice'
   branches: PromptChoice[]
+  loc: Loc
 }
 interface ActionPushStack {
   kind: 'Action.PushStack'
@@ -71,18 +73,24 @@ type PromptChoice = {
   index: number
 }
 
-// Action creators
 export type Interpreter<R> = Free<Action, R>
+
+export type InterpreterThread<R> = {
+  interpreter: Interpreter<R>
+  loc: Loc
+}
+
+// Action creators
 
 export const empty: Interpreter<any> = Free.pure(null)
 
 export const pure = <R>(v: R): Interpreter<R> => Free.pure(v)
 
 // Variable lookup
-export const defineVar = <R>(variable: string, value: any): Interpreter<R> =>
+export const defineVar = <R>(variable: string, value: Result): Interpreter<R> =>
   Free.lift({ kind: 'Action.DefineVar', variable, value })
 
-export const lookupVar = <R>(variable): Interpreter<R> =>
+export const lookupVar = (variable: string): Interpreter<Result> =>
   Free.lift({ kind: 'Action.LookupVar', variable })
 
 // Control Flow
@@ -92,15 +100,16 @@ const popStack: Interpreter<any> = Free.lift({ kind: 'Action.PopStack' })
 export const scoped = <R>(action: Interpreter<R>) =>
   pushStack.flatMap(() => action).flatMap(() => popStack)
 
-export const forkFirst = <R>(branches: Interpreter<R>[]): Interpreter<R> =>
-  Free.lift({ kind: 'Action.ForkFirst', branches })
+export const forkFirst = <R>(
+  branches: InterpreterThread<R>[]
+): Interpreter<R> => Free.lift({ kind: 'Action.ForkFirst', branches })
 
-export const forkAll = <R>(branches: Interpreter<R>[]): Interpreter<R> =>
+export const forkAll = <R>(branches: InterpreterThread<R>[]): Interpreter<R> =>
   Free.lift({ kind: 'Action.ForkAll', branches })
 
-export const promptChoice = <R>(branches: any[]): Interpreter<R> =>
-  Free.lift({ kind: 'Action.PromptChoice', branches })
+export const promptChoice = <R>(branches: any[], loc): Interpreter<R> =>
+  Free.lift({ kind: 'Action.PromptChoice', branches, loc })
 
 // User defined commands
-export const exec = <R>({ fn, args }): Interpreter<R> =>
-  Free.lift({ kind: 'Action.Exec', fn, args })
+export const exec = <R>({ fn, args, loc }): Interpreter<R> =>
+  Free.lift({ kind: 'Action.Exec', fn, args, loc })

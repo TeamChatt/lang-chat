@@ -1,3 +1,4 @@
+import { Loc } from '../static/ast'
 import {
   BindingContext,
   empty as bindingEmpty,
@@ -13,6 +14,7 @@ interface CtxSeq {
   kind: 'RuntimeContext.Seq'
   bindings: BindingContext
   stack?: RuntimeContext
+  loc: Loc
 }
 interface CtxParFirst {
   kind: 'RuntimeContext.ParFirst'
@@ -27,10 +29,11 @@ interface CtxParAll {
 
 const match = (obj, cases) => cases[obj.kind](obj)
 
-const ctxSeq = ({ bindings, stack }): RuntimeContext => ({
+const ctxSeq = ({ bindings, stack, loc }): RuntimeContext => ({
   kind: 'RuntimeContext.Seq',
   bindings,
   stack,
+  loc,
 })
 
 const ctxParFirst = ({ threads, stack }): ParallelRuntimeContext => ({
@@ -48,58 +51,62 @@ const ctxParAll = ({ threads, stack }): ParallelRuntimeContext => ({
 export const empty: RuntimeContext = ctxSeq({
   bindings: bindingEmpty,
   stack: null,
+  loc: null, // TODO: "top" location?
 })
 
 export const defineVar = (variable: string, value: Result) => (
   rt: RuntimeContext
 ): RuntimeContext =>
   match(rt, {
-    'RuntimeContext.Seq': ({ bindings, stack }) =>
+    'RuntimeContext.Seq': ({ bindings, stack, loc }) =>
       ctxSeq({
         bindings: bindingDefineVar(variable, value)(bindings),
         stack,
+        loc,
       }),
   })
 
 export const lookupVar = (variable: string) => (rt: RuntimeContext): Result =>
   match(rt, {
     'RuntimeContext.Seq': ({ bindings }) =>
-      bindingLookupVar(variable)(bindings),
+      bindingLookupVar(variable)(bindings), // TODO: return a maybe?
   })
 
 export const popStack = (rt: RuntimeContext): RuntimeContext => rt.stack
 
 export const pushStack = (rt: RuntimeContext): RuntimeContext =>
   match(rt, {
-    'RuntimeContext.Seq': ({ bindings }) => ({
-      kind: 'RuntimeContext.Seq',
-      bindings,
-      stack: rt,
-    }),
+    'RuntimeContext.Seq': ({ bindings, loc }) =>
+      ctxSeq({
+        bindings,
+        stack: rt,
+        loc,
+      }),
   })
 
-const spawn = (rt: RuntimeContext): RuntimeContext =>
+const spawn = (loc: Loc) => (rt: RuntimeContext): RuntimeContext =>
   match(rt, {
-    'RuntimeContext.Seq': ({ bindings }) => ({
-      kind: 'RuntimeContext.Seq',
-      bindings,
-      stack: null,
-    }),
+    'RuntimeContext.Seq': ({ bindings }) =>
+      ctxSeq({
+        bindings,
+        stack: null,
+        loc,
+      }),
   })
 
-export const forkFirst = (count: number) => (
+export const forkFirst = (locations: Loc[]) => (
   rt: RuntimeContext
 ): ParallelRuntimeContext =>
   ctxParFirst({
-    threads: new Array(count).fill(spawn(rt)),
+    threads: locations.map((loc) => spawn(loc)(rt)),
     stack: rt,
   })
 
-export const forkAll = (count: number) => (
+export const forkAll = (locations: Loc[]) => (
   rt: RuntimeContext
 ): ParallelRuntimeContext =>
   ctxParFirst({
-    threads: new Array(count).fill(spawn(rt)),
+    threads: locations.map((loc) => spawn(loc)(rt)),
     stack: rt,
   })
 
@@ -116,5 +123,15 @@ export const stepParallel = (newThreads: RuntimeContext[]) => (
       ctxParAll({
         threads: newThreads,
         stack,
+      }),
+  })
+
+export const stepSeq = (loc: Loc) => (rt: RuntimeContext): RuntimeContext =>
+  match(rt, {
+    'RuntimeContext.Seq': ({ stack, bindings }) =>
+      ctxSeq({
+        bindings,
+        stack,
+        loc,
       }),
   })

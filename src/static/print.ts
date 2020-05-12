@@ -61,16 +61,16 @@ const printBranches = (branches) =>
 
 const printBranch = (branch) =>
   match(branch, {
-    'Branch.Choice': ({ label, cmds }) =>
+    'Branch.Choice': ({ label, cmdExpr }) =>
       seq([
         str('choice'),
         str(' '),
         str(label),
         str(':'),
         str(' '),
-        printCmds(cmds),
+        printExpr(cmdExpr),
       ]),
-    'Branch.Fork': ({ cmds }) => seq([str('fork'), printCmds(cmds)]),
+    'Branch.Fork': ({ cmdExpr }) => seq([str('fork'), printExpr(cmdExpr)]),
     'Branch.Cond': () => Doc.Empty, //TODO
   })
 

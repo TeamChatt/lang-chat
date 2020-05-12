@@ -1,3 +1,5 @@
+export type Loc = string
+
 export type Prog = {
   commands: Cmd[]
 }
@@ -38,6 +40,7 @@ interface CmdExec {
   kind: 'Cmd.Exec'
   fn: string
   args: Expr[]
+  loc?: Loc
 }
 interface CmdRun {
   kind: 'Cmd.Run'
@@ -51,10 +54,12 @@ interface CmdDef {
 interface CmdChooseOne {
   kind: 'Cmd.ChooseOne'
   branches: ChoiceBranch[]
+  loc?: Loc
 }
 interface CmdChooseAll {
   kind: 'Cmd.ChooseAll'
   branches: ChoiceBranch[]
+  loc?: Loc
 }
 interface CmdForkFirst {
   kind: 'Cmd.ForkFirst'
@@ -99,12 +104,12 @@ interface ExprCmds {
 
 // Branch types
 export const Branch = {
-  Choice: ({ label, cmds }): ChoiceBranch => ({
+  Choice: ({ label, cmdExpr }): ChoiceBranch => ({
     kind: 'Branch.Choice',
     label,
-    cmds,
+    cmdExpr,
   }),
-  Fork: (cmds: Cmd[]): ForkBranch => ({ kind: 'Branch.Fork', cmds }),
+  Fork: (cmdExpr: Expr): ForkBranch => ({ kind: 'Branch.Fork', cmdExpr }),
   Cond: ({ condition, result }): CondBranch => ({
     kind: 'Branch.Cond',
     condition,
@@ -115,12 +120,13 @@ export const Branch = {
 interface ChoiceBranch {
   kind: 'Branch.Choice'
   label: string
-  cmds: Cmd[]
+  cmdExpr: Expr
 }
 
 interface ForkBranch {
   kind: 'Branch.Fork'
-  cmds: Cmd[]
+  cmdExpr: Expr
+  loc?: Loc
 }
 
 interface CondBranch {
