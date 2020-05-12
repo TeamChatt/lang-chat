@@ -1,5 +1,5 @@
+import { Prog } from '../static/ast'
 import { Output } from './runtime-sync'
-import { Prog } from '../ast'
 import { runProg } from './run-prog'
 import { runInterpreter } from './run-interpreter'
 import { empty } from './runtime-context'

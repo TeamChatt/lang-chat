@@ -1,5 +1,5 @@
 import { Free } from '../monad/free'
-import { Cmd } from '../ast'
+import { Cmd } from '../static/ast'
 
 // Result types
 export const Result = {

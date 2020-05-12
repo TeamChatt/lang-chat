@@ -1,4 +1,4 @@
-import { Prog, Cmd, Expr } from '../ast'
+import { Prog, Cmd, Expr } from '../static/ast'
 import { Maybe } from '../monad/maybe'
 import {
   Result,

@@ -7,7 +7,7 @@ import {
   intersperse,
   newline,
   Doc,
-} from './doc'
+} from '../doc'
 import { Prog, Cmd, Expr } from './ast'
 
 //TODO: how to write types for this

@@ -1,4 +1,4 @@
-import { Prog, Cmd, Expr } from '../ast'
+import { Prog, Cmd, Expr } from '../static/ast'
 
 export const program: Prog = {
   commands: [
