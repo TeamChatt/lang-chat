@@ -1,12 +1,17 @@
 import { program } from './programs/fork-first'
 import print from './static/print'
 import tagLocation from './static/tag-location'
+import queryLocation from './static/query-location'
 import { runGame } from './runtime'
 
-console.log(print(program))
-console.log(tagLocation(program))
+const loc = ['commands', '[0]']
+const taggedProgram = tagLocation(program)
 
-const io = runGame(program)
+console.log(taggedProgram)
+console.log(print(taggedProgram))
+console.log(queryLocation(loc)(taggedProgram))
+
+const io = runGame(taggedProgram)
 for (const [ctx, effect] of io) {
   console.log(ctx)
   effect()

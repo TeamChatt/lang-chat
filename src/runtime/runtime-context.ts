@@ -1,5 +1,5 @@
 import match from '../util/match'
-import { Loc } from '../static/location'
+import { Loc, top } from '../static/location'
 import {
   BindingContext,
   empty as bindingEmpty,
@@ -50,7 +50,7 @@ const ctxParAll = ({ threads, stack }): ParallelRuntimeContext => ({
 export const empty: RuntimeContext = ctxSeq({
   bindings: bindingEmpty,
   stack: null,
-  loc: null, // TODO: "top" location?
+  loc: top,
 })
 
 export const defineVar = (variable: string, value: Result) => (

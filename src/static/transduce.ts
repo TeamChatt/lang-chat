@@ -107,30 +107,6 @@ const visitBranch = (transducer: Transducer): BranchVisitor => ({
   },
 })
 
-const idVisitor: ASTVisitor = {
-  Cmd: {
-    'Cmd.Exec': pure,
-    'Cmd.Run': pure,
-    'Cmd.Def': pure,
-    'Cmd.ChooseOne': pure,
-    'Cmd.ChooseAll': pure,
-    'Cmd.ForkFirst': pure,
-    'Cmd.ForkAll': pure,
-  },
-  Expr: {
-    'Expr.Var': pure,
-    'Expr.Lit': pure,
-    'Expr.Cond': pure,
-    'Expr.Cmd': pure,
-    'Expr.Cmds': pure,
-  },
-  Branch: {
-    'Branch.Choice': pure,
-    'Branch.Fork': pure,
-    'Branch.Cond': pure,
-  },
-}
-
 export const makeTransducer = (visitor: ASTVisitor): Transducer => {
   const transducer: Transducer = {
     Cmd: (cmd: Cmd) =>

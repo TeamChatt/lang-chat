@@ -44,7 +44,7 @@ export class RuntimeSync<T> {
       value: undefined,
       context: stepSeq(loc)(context),
       *[Symbol.iterator]() {
-        yield [context, io]
+        yield [this.context, io]
       },
     }))
   }

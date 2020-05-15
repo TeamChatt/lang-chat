@@ -9,6 +9,7 @@ export abstract class Maybe<T> {
   abstract map<S>(f: (t: T) => S): Maybe<S>
   abstract flatten() // TODO: how to type this?
   abstract maybe<R>(fromJust: (t: T) => R, defaultValue: () => R): R
+  abstract alt(maybe: Maybe<T>): Maybe<T>
 
   flatMap<S>(f: (t: T) => Maybe<S>): Maybe<S> {
     return this.map(f).flatten()
@@ -35,6 +36,9 @@ class Just<T> extends Maybe<T> {
     const { value } = this
     return fromJust(value)
   }
+  alt(maybe: Maybe<T>): Maybe<T> {
+    return this
+  }
 }
 
 class Nothing<T> extends Maybe<T> {
@@ -46,5 +50,8 @@ class Nothing<T> extends Maybe<T> {
   }
   maybe<R>(fromJust: (t: T) => R, defaultValue: () => R): R {
     return defaultValue()
+  }
+  alt(maybe: Maybe<T>): Maybe<T> {
+    return maybe
   }
 }
