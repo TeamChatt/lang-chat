@@ -64,10 +64,12 @@ interface CmdChooseAll {
 interface CmdForkFirst {
   kind: 'Cmd.ForkFirst'
   branches: ForkBranch[]
+  loc?: Loc
 }
 interface CmdForkAll {
   kind: 'Cmd.ForkAll'
   branches: ForkBranch[]
+  loc?: Loc
 }
 
 // Expressions

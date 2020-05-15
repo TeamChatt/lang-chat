@@ -36,19 +36,21 @@ const runCmd = (cmd: Cmd): Interpreter<any> =>
       evalExpr(value).flatMap((result) => defineVar(variable, result)),
     'Cmd.ChooseOne': ({ branches, loc }) => runChooseOne(branches, loc),
     'Cmd.ChooseAll': ({ branches, loc }) => runChooseAll(branches, loc),
-    'Cmd.ForkFirst': ({ branches }) =>
+    'Cmd.ForkFirst': ({ branches, loc }) =>
       forkFirst(
         branches.map((branch) => ({
           interpreter: runBranch(branch),
           loc: branchLoc(branch),
-        }))
+        })),
+        loc
       ),
-    'Cmd.ForkAll': ({ branches }) =>
+    'Cmd.ForkAll': ({ branches, loc }) =>
       forkAll(
         branches.map((branch) => ({
           interpreter: runBranch(branch),
           loc: branchLoc(branch),
-        }))
+        })),
+        loc
       ),
   })
 
@@ -135,5 +137,8 @@ const getResult = (result: Result) =>
   })
 
 // Program
+export const runCmds = (cmds: Cmd[]): Interpreter<Result> =>
+  sequenceM(cmds, runCmd)
+
 export const runProg = ({ commands }: Prog): Interpreter<Result> =>
-  sequenceM(commands, runCmd)
+  runCmds(commands)

@@ -21,11 +21,13 @@ interface CtxParFirst {
   kind: 'RuntimeContext.ParFirst'
   threads: RuntimeContext[]
   stack?: RuntimeContext
+  loc: Loc
 }
 interface CtxParAll {
   kind: 'RuntimeContext.ParAll'
   threads: RuntimeContext[]
   stack?: RuntimeContext
+  loc: Loc
 }
 
 const ctxSeq = ({ bindings, stack, loc }): RuntimeContext => ({
@@ -35,16 +37,18 @@ const ctxSeq = ({ bindings, stack, loc }): RuntimeContext => ({
   loc,
 })
 
-const ctxParFirst = ({ threads, stack }): ParallelRuntimeContext => ({
+const ctxParFirst = ({ threads, stack, loc }): ParallelRuntimeContext => ({
   kind: 'RuntimeContext.ParFirst',
   threads,
   stack,
+  loc,
 })
 
-const ctxParAll = ({ threads, stack }): ParallelRuntimeContext => ({
+const ctxParAll = ({ threads, stack, loc }): ParallelRuntimeContext => ({
   kind: 'RuntimeContext.ParAll',
   threads,
   stack,
+  loc,
 })
 
 export const empty: RuntimeContext = ctxSeq({
@@ -99,6 +103,7 @@ export const forkFirst = (locations: Loc[]) => (
   ctxParFirst({
     threads: locations.map((loc) => spawn(loc)(rt)),
     stack: rt,
+    loc: rt.loc,
   })
 
 export const forkAll = (locations: Loc[]) => (
@@ -107,6 +112,7 @@ export const forkAll = (locations: Loc[]) => (
   ctxParFirst({
     threads: locations.map((loc) => spawn(loc)(rt)),
     stack: rt,
+    loc: rt.loc,
   })
 
 export const stepParallel = (newThreads: RuntimeContext[]) => (
@@ -117,11 +123,13 @@ export const stepParallel = (newThreads: RuntimeContext[]) => (
       ctxParFirst({
         threads: newThreads,
         stack,
+        loc: rt.loc,
       }),
     'RuntimeContext.ParAll': ({ stack }) =>
       ctxParAll({
         threads: newThreads,
         stack,
+        loc: rt.loc,
       }),
   })
 

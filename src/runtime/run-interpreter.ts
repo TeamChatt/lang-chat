@@ -11,17 +11,17 @@ const runAction = (action: Action): RuntimeSync<any> =>
     'Action.PushStack': () => RuntimeSync.pushStack(),
     'Action.PopStack': () => RuntimeSync.popStack(),
     // Control Flow
-    'Action.ForkFirst': ({ branches }) => {
+    'Action.ForkFirst': ({ branches, loc }) => {
       const threads: RuntimeSyncThread<any>[] = branches.map(
         runInterpreterThread
       )
-      return RuntimeSync.forkFirst(threads)
+      return RuntimeSync.forkFirst(threads, loc)
     },
-    'Action.ForkAll': ({ branches }) => {
+    'Action.ForkAll': ({ branches, loc }) => {
       const threads: RuntimeSyncThread<any>[] = branches.map(
         runInterpreterThread
       )
-      return RuntimeSync.forkAll(threads)
+      return RuntimeSync.forkAll(threads, loc)
     },
     // Game Effects
     'Action.Exec': ({ fn, args, loc }) =>

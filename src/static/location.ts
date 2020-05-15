@@ -1,6 +1,8 @@
 export type Loc = string[]
 
-export const top: Loc = []
+export const empty: Loc = []
+
+export const top: Loc = ['commands', '[0]']
 
 export const down = (key: string) => (loc: Loc): Loc => [...loc, key]
 

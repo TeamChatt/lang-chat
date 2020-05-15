@@ -52,10 +52,12 @@ interface ActionExec {
 interface ActionForkFirst {
   kind: 'Action.ForkFirst'
   branches: InterpreterThread<any>[]
+  loc: Loc
 }
 interface ActionForkAll {
   kind: 'Action.ForkAll'
   branches: InterpreterThread<any>[]
+  loc: Loc
 }
 interface ActionPromptChoice {
   kind: 'Action.PromptChoice'
@@ -101,11 +103,14 @@ export const scoped = <R>(action: Interpreter<R>) =>
   pushStack.flatMap(() => action).flatMap(() => popStack)
 
 export const forkFirst = <R>(
-  branches: InterpreterThread<R>[]
-): Interpreter<R> => Free.lift({ kind: 'Action.ForkFirst', branches })
+  branches: InterpreterThread<R>[],
+  loc: Loc
+): Interpreter<R> => Free.lift({ kind: 'Action.ForkFirst', branches, loc })
 
-export const forkAll = <R>(branches: InterpreterThread<R>[]): Interpreter<R> =>
-  Free.lift({ kind: 'Action.ForkAll', branches })
+export const forkAll = <R>(
+  branches: InterpreterThread<R>[],
+  loc: Loc
+): Interpreter<R> => Free.lift({ kind: 'Action.ForkAll', branches, loc })
 
 export const promptChoice = <R>(branches: any[], loc): Interpreter<R> =>
   Free.lift({ kind: 'Action.PromptChoice', branches, loc })

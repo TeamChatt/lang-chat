@@ -49,22 +49,28 @@ export class RuntimeSync<T> {
     }))
   }
   // Concurrency
-  static forkFirst<T>(threads: RuntimeSyncThread<T>[]): RuntimeSync<undefined> {
+  static forkFirst<T>(
+    threads: RuntimeSyncThread<T>[],
+    loc: Loc
+  ): RuntimeSync<undefined> {
     const runProcesses = (context) => ({
       value: undefined,
-      context,
+      context: stepSeq(loc)(context),
       *[Symbol.iterator]() {
-        yield* runUntilFirst(threads, context)
+        yield* runUntilFirst(threads, this.context)
       },
     })
     return new RuntimeSync(runProcesses)
   }
-  static forkAll<T>(threads: RuntimeSyncThread<T>[]): RuntimeSync<undefined> {
+  static forkAll<T>(
+    threads: RuntimeSyncThread<T>[],
+    loc: Loc
+  ): RuntimeSync<undefined> {
     const runProcesses = (context) => ({
       value: undefined,
-      context,
+      context: stepSeq(loc)(context),
       *[Symbol.iterator]() {
-        yield* runAll(threads, context)
+        yield* runAll(threads, this.context)
       },
     })
     return new RuntimeSync(runProcesses)

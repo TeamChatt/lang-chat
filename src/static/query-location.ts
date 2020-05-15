@@ -13,8 +13,10 @@ const queryCmds = (query: Loc) => (cmds: Cmd[]): Maybe<Cmd[]> =>
       const queryFirst = queryCmd(query)
       const queryFirstWithRest = (cmd) => queryFirst(cmd).map(withRest)
       return match(cmd, {
-        'Cmd.ForkFirst': queryFirst,
-        'Cmd.ForkAll': queryFirst,
+        'Cmd.ForkFirst': ({ loc }) =>
+          equals(query)(loc) ? queryFirstWithRest(cmd) : queryFirst(cmd),
+        'Cmd.ForkAll': ({ loc }) =>
+          equals(query)(loc) ? queryFirstWithRest(cmd) : queryFirst(cmd),
         'Cmd.Exec': queryFirstWithRest,
         'Cmd.Run': queryFirstWithRest,
         'Cmd.Def': queryFirstWithRest,
@@ -34,8 +36,10 @@ const queryCmd = (query: Loc) => (cmd: Cmd): Maybe<Cmd[]> =>
       equals(query)(loc) ? Maybe.just([cmd]) : queryBranches(query)(branches),
     'Cmd.ChooseAll': ({ loc, branches }) =>
       equals(query)(loc) ? Maybe.just([cmd]) : queryBranches(query)(branches),
-    'Cmd.ForkFirst': ({ branches }) => queryBranches(query)(branches),
-    'Cmd.ForkAll': ({ branches }) => queryBranches(query)(branches),
+    'Cmd.ForkFirst': ({ branches, loc }) =>
+      equals(query)(loc) ? Maybe.just([cmd]) : queryBranches(query)(branches),
+    'Cmd.ForkAll': ({ branches, loc }) =>
+      equals(query)(loc) ? Maybe.just([cmd]) : queryBranches(query)(branches),
   })
 
 const queryExpr = (query: Loc) => (expr: Expr): Maybe<Cmd[]> =>
