@@ -1,3 +1,4 @@
+import match from '../util/match'
 import { Loc } from '../static/ast'
 import {
   BindingContext,
@@ -26,8 +27,6 @@ interface CtxParAll {
   threads: RuntimeContext[]
   stack?: RuntimeContext
 }
-
-const match = (obj, cases) => cases[obj.kind](obj)
 
 const ctxSeq = ({ bindings, stack, loc }): RuntimeContext => ({
   kind: 'RuntimeContext.Seq',

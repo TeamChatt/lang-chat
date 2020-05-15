@@ -1,3 +1,4 @@
+import match from '../util/match'
 import { Prog, Cmd, Expr, Loc } from '../static/ast'
 import { Maybe } from '../monad/maybe'
 import {
@@ -13,9 +14,6 @@ import {
   promptChoice,
   scoped,
 } from './interpreter'
-
-//TODO: how to write types for this
-const match = (obj, cases) => cases[obj.kind](obj)
 
 const sequenceM = <T>(
   array: T[],

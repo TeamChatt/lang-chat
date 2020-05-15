@@ -1,8 +1,6 @@
+import match from '../util/match'
 import { RuntimeSync, RuntimeSyncThread } from './runtime-sync'
 import { Action, Interpreter, InterpreterThread } from './interpreter'
-
-//TODO: how to write types for this
-const match = (obj, cases) => cases[obj.kind](obj)
 
 const runAction = (action: Action): RuntimeSync<any> =>
   match(action, {

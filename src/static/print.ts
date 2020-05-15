@@ -1,3 +1,4 @@
+import match from '../util/match'
 import {
   indent,
   layout,
@@ -9,9 +10,6 @@ import {
   Doc,
 } from '../doc'
 import { Prog, Cmd, Expr } from './ast'
-
-//TODO: how to write types for this
-const match = (obj, cases) => cases[obj.kind](obj)
 
 const parens = (doc: Doc<string>) => seq([str('('), doc, str(')')])
 const list = (docs: Doc<string>[]) => intersperse(docs, str(','))

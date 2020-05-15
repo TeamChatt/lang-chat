@@ -81,7 +81,6 @@ export type InterpreterThread<R> = {
 }
 
 // Action creators
-
 export const empty: Interpreter<any> = Free.pure(null)
 
 export const pure = <R>(v: R): Interpreter<R> => Free.pure(v)
