@@ -1,4 +1,4 @@
-import { Loc } from '../static/ast'
+import { Loc } from '../static/location'
 import {
   RuntimeContext,
   lookupVar,

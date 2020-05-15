@@ -1,5 +1,5 @@
 import match from '../util/match'
-import { Loc } from '../static/ast'
+import { Loc } from '../static/location'
 import {
   BindingContext,
   empty as bindingEmpty,

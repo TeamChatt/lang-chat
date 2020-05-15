@@ -1,4 +1,4 @@
-export type Loc = string
+import { Loc } from './location'
 
 export type Prog = {
   commands: Cmd[]

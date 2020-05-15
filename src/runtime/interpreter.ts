@@ -1,5 +1,6 @@
 import { Free } from '../monad/free'
-import { Cmd, Loc } from '../static/ast'
+import { Cmd } from '../static/ast'
+import { Loc } from '../static/location'
 
 // Result types
 export const Result = {
