@@ -1,9 +1,15 @@
 import { empty } from './location'
-import { readLocation, withArray, withKey, pure } from './ast-context'
+import {
+  readLocation,
+  withArray,
+  withKey,
+  pure,
+  ASTContext,
+} from './ast-context'
 import { transduce, makeTransducer } from './transduce'
 import { Cmd, Branch } from './ast'
 
-const withLocation = (astM) =>
+const withLocation = (astM): ASTContext<any> =>
   readLocation().flatMap((loc) =>
     astM.map((ast) => ({
       ...ast,
@@ -16,6 +22,12 @@ const tagLocation = (program) => {
     Cmd: {
       //@ts-ignore
       'Cmd.Exec': ({ fn, args }) => withLocation(pure(Cmd.Exec({ fn, args }))),
+      'Cmd.Run': ({ expr }) =>
+        withLocation(transducer.Expr(expr).map((expr) => Cmd.Run(expr))),
+      'Cmd.Def': ({ variable, value }) =>
+        withLocation(
+          transducer.Expr(value).map((value) => Cmd.Def({ variable, value }))
+        ),
       'Cmd.ChooseOne': ({ branches }) =>
         //@ts-ignore
         withLocation(

@@ -39,36 +39,38 @@ export class RuntimeSync<T> {
       *[Symbol.iterator]() {},
     }))
   }
-  static fromEffect(io: Effect, loc: Loc): RuntimeSync<undefined> {
+  static fromEffect(io: Effect): RuntimeSync<undefined> {
     return new RuntimeSync((context) => ({
       value: undefined,
-      context: stepSeq(loc)(context),
+      context,
       *[Symbol.iterator]() {
         yield [this.context, io]
       },
     }))
   }
-  // Concurrency
-  static forkFirst<T>(
-    threads: RuntimeSyncThread<T>[],
-    loc: Loc
-  ): RuntimeSync<undefined> {
-    const runProcesses = (context) => ({
+  // Control Flow
+  static step<T>(loc: Loc): RuntimeSync<T> {
+    return new RuntimeSync((context) => ({
       value: undefined,
       context: stepSeq(loc)(context),
+      *[Symbol.iterator]() {},
+    }))
+  }
+  // Concurrency
+  static forkFirst<T>(threads: RuntimeSyncThread<T>[]): RuntimeSync<undefined> {
+    const runProcesses = (context) => ({
+      value: undefined,
+      context,
       *[Symbol.iterator]() {
         yield* runUntilFirst(threads, this.context)
       },
     })
     return new RuntimeSync(runProcesses)
   }
-  static forkAll<T>(
-    threads: RuntimeSyncThread<T>[],
-    loc: Loc
-  ): RuntimeSync<undefined> {
+  static forkAll<T>(threads: RuntimeSyncThread<T>[]): RuntimeSync<undefined> {
     const runProcesses = (context) => ({
       value: undefined,
-      context: stepSeq(loc)(context),
+      context,
       *[Symbol.iterator]() {
         yield* runAll(threads, this.context)
       },

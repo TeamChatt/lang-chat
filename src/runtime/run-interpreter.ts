@@ -11,29 +11,30 @@ const runAction = (action: Action): RuntimeSync<any> =>
     'Action.PushStack': () => RuntimeSync.pushStack(),
     'Action.PopStack': () => RuntimeSync.popStack(),
     // Control Flow
-    'Action.ForkFirst': ({ branches, loc }) => {
+    'Action.Step': ({ loc }) => RuntimeSync.step(loc),
+    'Action.ForkFirst': ({ branches }) => {
       const threads: RuntimeSyncThread<any>[] = branches.map(
         runInterpreterThread
       )
-      return RuntimeSync.forkFirst(threads, loc)
+      return RuntimeSync.forkFirst(threads)
     },
-    'Action.ForkAll': ({ branches, loc }) => {
+    'Action.ForkAll': ({ branches }) => {
       const threads: RuntimeSyncThread<any>[] = branches.map(
         runInterpreterThread
       )
-      return RuntimeSync.forkAll(threads, loc)
+      return RuntimeSync.forkAll(threads)
     },
     // Game Effects
-    'Action.Exec': ({ fn, args, loc }) =>
+    'Action.Exec': ({ fn, args }) =>
       RuntimeSync.fromEffect(() => {
         console.log({ fn, args })
-      }, loc),
-    'Action.PromptChoice': ({ branches, loc }) =>
+      }),
+    'Action.PromptChoice': ({ branches }) =>
       RuntimeSync.fromEffect(() => {
         //TODO: some kinda IO
         //let user pick a branch somehow
         return branches[0]
-      }, loc),
+      }),
   })
 
 const runInterpreterThread = (

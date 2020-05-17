@@ -45,11 +45,13 @@ interface CmdExec {
 interface CmdRun {
   kind: 'Cmd.Run'
   expr: Expr
+  loc?: Loc
 }
 interface CmdDef {
   kind: 'Cmd.Def'
   variable: string
   value: Expr
+  loc?: Loc
 }
 interface CmdChooseOne {
   kind: 'Cmd.ChooseOne'

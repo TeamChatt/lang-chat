@@ -28,6 +28,7 @@ export type Action =
   | ActionDefineVar
   | ActionLookupVar
   | ActionExec
+  | ActionStep
   | ActionForkFirst
   | ActionForkAll
   | ActionPromptChoice
@@ -47,22 +48,22 @@ interface ActionExec {
   kind: 'Action.Exec'
   fn: string
   args: string[]
+}
+interface ActionStep {
+  kind: 'Action.Step'
   loc: Loc
 }
 interface ActionForkFirst {
   kind: 'Action.ForkFirst'
   branches: InterpreterThread<any>[]
-  loc: Loc
 }
 interface ActionForkAll {
   kind: 'Action.ForkAll'
   branches: InterpreterThread<any>[]
-  loc: Loc
 }
 interface ActionPromptChoice {
   kind: 'Action.PromptChoice'
   branches: PromptChoice[]
-  loc: Loc
 }
 interface ActionPushStack {
   kind: 'Action.PushStack'
@@ -102,19 +103,19 @@ const popStack: Interpreter<any> = Free.lift({ kind: 'Action.PopStack' })
 export const scoped = <R>(action: Interpreter<R>) =>
   pushStack.flatMap(() => action).flatMap(() => popStack)
 
+export const step = <R>(loc: Loc): Interpreter<R> =>
+  Free.lift({ kind: 'Action.Step', loc })
+
 export const forkFirst = <R>(
-  branches: InterpreterThread<R>[],
-  loc: Loc
-): Interpreter<R> => Free.lift({ kind: 'Action.ForkFirst', branches, loc })
+  branches: InterpreterThread<R>[]
+): Interpreter<R> => Free.lift({ kind: 'Action.ForkFirst', branches })
 
-export const forkAll = <R>(
-  branches: InterpreterThread<R>[],
-  loc: Loc
-): Interpreter<R> => Free.lift({ kind: 'Action.ForkAll', branches, loc })
+export const forkAll = <R>(branches: InterpreterThread<R>[]): Interpreter<R> =>
+  Free.lift({ kind: 'Action.ForkAll', branches })
 
-export const promptChoice = <R>(branches: any[], loc): Interpreter<R> =>
-  Free.lift({ kind: 'Action.PromptChoice', branches, loc })
+export const promptChoice = <R>(branches: any[]): Interpreter<R> =>
+  Free.lift({ kind: 'Action.PromptChoice', branches })
 
 // User defined commands
-export const exec = <R>({ fn, args, loc }): Interpreter<R> =>
-  Free.lift({ kind: 'Action.Exec', fn, args, loc })
+export const exec = <R>({ fn, args }): Interpreter<R> =>
+  Free.lift({ kind: 'Action.Exec', fn, args })
