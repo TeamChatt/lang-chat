@@ -5,7 +5,11 @@ import queryLocation from '../static/query-location'
 import { Output, RuntimeSync, RuntimeSyncThread } from './runtime-sync'
 import { runCmds } from './run-prog'
 import { runInterpreter } from './run-interpreter'
-import { empty, RuntimeContext } from './runtime-context'
+import {
+  empty,
+  RuntimeContext,
+  ParallelRuntimeContext,
+} from './runtime-context'
 
 const defaultState = empty
 
@@ -29,15 +33,17 @@ const resumeRuntime = (rt: RuntimeContext, program: Prog): RuntimeSync<any> =>
     'RuntimeContext.Seq': ({ loc }) => runAtLocation(loc, program),
     'RuntimeContext.ParFirst': ({ threads }) => {
       const processes = resumeThreads(threads, program)
-      return RuntimeSync.forkFirst(processes)
+      return RuntimeSync.forkFirst(processes, rt as ParallelRuntimeContext)
     },
     'RuntimeContext.ParAll': ({ threads }) => {
       const processes = resumeThreads(threads, program)
-      return RuntimeSync.forkAll(processes)
+      return RuntimeSync.forkAll(processes, rt as ParallelRuntimeContext)
     },
   }).flatMap(() =>
     // TODO: should this yield something instead of undefined?
-    rt.stack ? resumeRuntime(rt.stack, program) : RuntimeSync.of(undefined)
+    rt.stack
+      ? RuntimeSync.popStack().flatMap(() => resumeRuntime(rt.stack, program))
+      : RuntimeSync.of(undefined)
   )
 
 const resumeThreads = (

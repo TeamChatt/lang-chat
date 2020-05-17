@@ -1,42 +1,35 @@
-import { program } from './programs/run-seq'
+import { program } from './programs/fork-all'
 import print from './static/print'
 import tagLocation from './static/tag-location'
 import { run, resume, RuntimeContext } from './runtime'
 
 const rtContext: RuntimeContext = {
-  kind: 'RuntimeContext.Seq',
-  bindings: {
-    label: {
-      kind: 'Result.Cmds',
-      cmds: [
-        {
-          kind: 'Cmd.Exec',
-          fn: 'exec',
-          args: [],
-          loc: ['commands', '[0]', 'cmds', '[0]'],
-        },
-      ],
+  kind: 'RuntimeContext.ParAll',
+  threads: [
+    {
+      kind: 'RuntimeContext.Seq',
+      bindings: {},
+      stack: null,
+      loc: ['commands', '[1]', 'branches', '[1]'],
     },
-  },
+    {
+      kind: 'RuntimeContext.Seq',
+      bindings: {},
+      stack: {
+        kind: 'RuntimeContext.Seq',
+        bindings: {},
+        stack: null,
+        loc: ['commands', '[1]', 'branches', '[0]'],
+      },
+      loc: ['commands', '[1]', 'branches', '[0]', 'cmdExpr', 'cmds', '[0]'],
+    },
+  ],
   stack: {
     kind: 'RuntimeContext.Seq',
-    bindings: {
-      label: {
-        kind: 'Result.Cmds',
-        cmds: [
-          {
-            kind: 'Cmd.Exec',
-            fn: 'exec',
-            args: [],
-            loc: ['commands', '[0]', 'cmds', '[0]'],
-          },
-        ],
-      },
-    },
+    bindings: {},
     stack: null,
-    loc: ['commands', '[2]'],
+    loc: ['commands', '[1]'],
   },
-  loc: ['commands', '[0]', 'cmds', '[0]'],
 }
 const taggedProgram = tagLocation(program)
 

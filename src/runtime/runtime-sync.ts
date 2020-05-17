@@ -9,6 +9,7 @@ import {
   forkAll,
   stepSeq,
   stepParallel,
+  ParallelRuntimeContext,
 } from './runtime-context'
 
 export type Effect = () => any
@@ -57,22 +58,32 @@ export class RuntimeSync<T> {
     }))
   }
   // Concurrency
-  static forkFirst<T>(threads: RuntimeSyncThread<T>[]): RuntimeSync<undefined> {
+  static forkFirst<T>(
+    threads: RuntimeSyncThread<T>[],
+    rtContext?: ParallelRuntimeContext
+  ): RuntimeSync<undefined> {
     const runProcesses = (context) => ({
       value: undefined,
       context,
       *[Symbol.iterator]() {
-        yield* runUntilFirst(threads, this.context)
+        const parallelContext =
+          rtContext || forkFirst(threads.map((t) => t.loc))(context)
+        yield* runUntilFirst(threads, parallelContext)
       },
     })
     return new RuntimeSync(runProcesses)
   }
-  static forkAll<T>(threads: RuntimeSyncThread<T>[]): RuntimeSync<undefined> {
+  static forkAll<T>(
+    threads: RuntimeSyncThread<T>[],
+    rtContext?: ParallelRuntimeContext
+  ): RuntimeSync<undefined> {
     const runProcesses = (context) => ({
       value: undefined,
       context,
       *[Symbol.iterator]() {
-        yield* runAll(threads, this.context)
+        const parallelContext =
+          rtContext || forkAll(threads.map((t) => t.loc))(context)
+        yield* runAll(threads, parallelContext)
       },
     })
     return new RuntimeSync(runProcesses)
@@ -148,9 +159,9 @@ export class RuntimeSync<T> {
 // Thread concurrency
 function* runUntilFirst<T>(
   threads: RuntimeSyncThread<T>[],
-  context: RuntimeContext
+  context: ParallelRuntimeContext
 ): Generator<Output> {
-  let parallelContext = forkFirst(threads.map((t) => t.loc))(context)
+  let parallelContext = context
   let threadQueue = threads
     .map((t) => t.runtime)
     .map((t, i) => t.run(parallelContext.threads[i])[Symbol.iterator]())
@@ -176,9 +187,9 @@ function* runUntilFirst<T>(
 
 function* runAll<T>(
   threads: RuntimeSyncThread<T>[],
-  context: RuntimeContext
+  context: ParallelRuntimeContext
 ): Generator<Output> {
-  let parallelContext = forkAll(threads.map((t) => t.loc))(context)
+  let parallelContext = context
   let threadQueue = threads
     .map((t) => t.runtime)
     .map((t, i) => t.run(parallelContext.threads[i])[Symbol.iterator]())
