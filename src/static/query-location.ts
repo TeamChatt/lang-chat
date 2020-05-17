@@ -1,7 +1,7 @@
 import match from '../util/match'
 import { Maybe } from '../monad/maybe'
 import { Prog, Cmd, Expr } from './ast'
-import { Loc, equals } from './location'
+import { Loc, equals, top } from './location'
 
 const alts = <T>(maybes: Maybe<T>[]): Maybe<T> =>
   maybes.reduce((m1, m2) => m1.alt(m2), Maybe.nothing())
@@ -67,6 +67,6 @@ const queryBranch = (query: Loc) => (branch): Maybe<Cmd[]> =>
   })
 
 const queryProg = (loc: Loc) => ({ commands }: Prog): Maybe<Cmd[]> =>
-  queryCmds(loc)(commands)
+  equals(loc)(top) ? Maybe.just(commands) : queryCmds(loc)(commands)
 
 export default queryProg
