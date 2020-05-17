@@ -17,9 +17,10 @@ const queryCmds = (query: Loc) => (cmds: Cmd[]): Maybe<Cmd[]> =>
           equals(query)(loc) ? queryFirstWithRest(cmd) : queryFirst(cmd),
         'Cmd.ForkAll': ({ loc }) =>
           equals(query)(loc) ? queryFirstWithRest(cmd) : queryFirst(cmd),
+        'Cmd.Def': ({ loc }) =>
+          equals(query)(loc) ? queryFirstWithRest(cmd) : queryFirst(cmd),
         'Cmd.Exec': queryFirstWithRest,
         'Cmd.Run': queryFirstWithRest,
-        'Cmd.Def': queryFirstWithRest,
         'Cmd.ChooseOne': queryFirstWithRest,
         'Cmd.ChooseAll': queryFirstWithRest,
       })
@@ -27,19 +28,17 @@ const queryCmds = (query: Loc) => (cmds: Cmd[]): Maybe<Cmd[]> =>
   )
 
 const queryCmd = (query: Loc) => (cmd: Cmd): Maybe<Cmd[]> =>
+  equals(query)(cmd.loc) ? Maybe.just([cmd]) : queryCmdInner(query)(cmd)
+
+const queryCmdInner = (query: Loc) => (cmd: Cmd): Maybe<Cmd[]> =>
   match(cmd, {
-    'Cmd.Exec': ({ loc }) =>
-      equals(query)(loc) ? Maybe.just([cmd]) : Maybe.nothing(),
-    'Cmd.Run': ({ expr }) => queryExpr(expr),
-    'Cmd.Def': ({ value }) => queryExpr(value),
-    'Cmd.ChooseOne': ({ loc, branches }) =>
-      equals(query)(loc) ? Maybe.just([cmd]) : queryBranches(query)(branches),
-    'Cmd.ChooseAll': ({ loc, branches }) =>
-      equals(query)(loc) ? Maybe.just([cmd]) : queryBranches(query)(branches),
-    'Cmd.ForkFirst': ({ branches, loc }) =>
-      equals(query)(loc) ? Maybe.just([cmd]) : queryBranches(query)(branches),
-    'Cmd.ForkAll': ({ branches, loc }) =>
-      equals(query)(loc) ? Maybe.just([cmd]) : queryBranches(query)(branches),
+    'Cmd.Exec': () => Maybe.nothing(),
+    'Cmd.Run': ({ expr }) => queryExpr(query)(expr),
+    'Cmd.Def': ({ value }) => queryExpr(query)(value),
+    'Cmd.ChooseOne': ({ branches }) => queryBranches(query)(branches),
+    'Cmd.ChooseAll': ({ branches }) => queryBranches(query)(branches),
+    'Cmd.ForkFirst': ({ branches }) => queryBranches(query)(branches),
+    'Cmd.ForkAll': ({ branches }) => queryBranches(query)(branches),
   })
 
 const queryExpr = (query: Loc) => (expr: Expr): Maybe<Cmd[]> =>

@@ -13,7 +13,7 @@ export const run = (program: Prog): Iterable<Output> =>
   resume(defaultState, program)
 
 export const resume = (rt: RuntimeContext, program: Prog): Iterable<Output> =>
-  resumeRuntime(rt, program).run(defaultState)
+  resumeRuntime(rt, program).run(rt)
 
 const runAtLocation = (loc: Loc, program: Prog): RuntimeSync<any> => {
   const maybeCmds = queryLocation(loc)(program)
@@ -27,13 +27,13 @@ const runAtLocation = (loc: Loc, program: Prog): RuntimeSync<any> => {
 const resumeRuntime = (rt: RuntimeContext, program: Prog): RuntimeSync<any> =>
   match(rt, {
     'RuntimeContext.Seq': ({ loc }) => runAtLocation(loc, program),
-    'RuntimeContext.ParFirst': ({ threads, loc }) => {
+    'RuntimeContext.ParFirst': ({ threads }) => {
       const processes = resumeThreads(threads, program)
-      return RuntimeSync.forkFirst(processes, loc)
+      return RuntimeSync.forkFirst(processes)
     },
-    'RuntimeContext.ParAll': ({ threads, loc }) => {
+    'RuntimeContext.ParAll': ({ threads }) => {
       const processes = resumeThreads(threads, program)
-      return RuntimeSync.forkAll(processes, loc)
+      return RuntimeSync.forkAll(processes)
     },
   }).flatMap(() =>
     // TODO: should this yield something instead of undefined?
@@ -47,6 +47,6 @@ const resumeThreads = (
   threadContexts.map(
     (threadContext: RuntimeContext): RuntimeSyncThread<any> => ({
       runtime: resumeRuntime(threadContext, program),
-      loc: threadContext.loc,
+      loc: (threadContext as any).loc,
     })
   )
