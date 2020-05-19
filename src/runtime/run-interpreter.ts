@@ -1,5 +1,5 @@
 import match from '../util/match'
-import { Runtime, RuntimeThread } from './runtime-sync'
+import { Runtime, RuntimeThread } from './runtime-async'
 import { Action, Interpreter, InterpreterThread } from './interpreter'
 
 const runAction = (action: Action): Runtime<any> =>
@@ -22,11 +22,11 @@ const runAction = (action: Action): Runtime<any> =>
     },
     // Game Effects
     'Action.Exec': ({ fn, args }) =>
-      Runtime.fromEffect(() => {
+      Runtime.fromEffect(async () => {
         console.log({ fn, args })
       }),
     'Action.PromptChoice': ({ branches }) =>
-      Runtime.fromEffect(() => {
+      Runtime.fromEffect(async () => {
         //TODO: some kinda IO
         //let user pick a branch somehow
         return branches[0]

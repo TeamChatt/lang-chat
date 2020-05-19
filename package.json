@@ -12,6 +12,7 @@
   },
   "browserslist": "last 2 Chrome versions",
   "dependencies": {
-    "fluture": "^12.2.0"
+    "fluture": "^12.2.0",
+    "xstream": "^11.11.0"
   }
 }

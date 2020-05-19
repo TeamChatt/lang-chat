@@ -1,8 +1,9 @@
+import { Stream } from 'xstream'
 import match from '../util/match'
 import { Loc } from '../static/location'
 import { Prog } from '../static/ast'
 import queryLocation from '../static/query-location'
-import { Output, Runtime, RuntimeThread } from './runtime-sync'
+import { Output, Runtime, RuntimeThread } from './runtime-async'
 import { runCmds } from './run-prog'
 import { runInterpreter } from './run-interpreter'
 import {
@@ -13,11 +14,11 @@ import {
 
 const defaultState = empty
 
-export const run = (program: Prog): Iterable<Output> =>
+export const run = (program: Prog): Stream<Output> =>
   resume(defaultState, program)
 
-export const resume = (rt: RuntimeContext, program: Prog): Iterable<Output> =>
-  resumeRuntime(rt, program).run(rt)
+export const resume = (rt: RuntimeContext, program: Prog): Stream<Output> =>
+  resumeRuntime(rt, program).run(rt).output
 
 const runAtLocation = (loc: Loc, program: Prog): Runtime<any> => {
   const maybeCmds = queryLocation(loc)(program)
