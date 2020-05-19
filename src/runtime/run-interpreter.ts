@@ -1,36 +1,32 @@
 import match from '../util/match'
-import { RuntimeSync, RuntimeSyncThread } from './runtime-sync'
+import { Runtime, RuntimeThread } from './runtime-sync'
 import { Action, Interpreter, InterpreterThread } from './interpreter'
 
-const runAction = (action: Action): RuntimeSync<any> =>
+const runAction = (action: Action): Runtime<any> =>
   match(action, {
     // Variable Binding
     'Action.DefineVar': ({ variable, value }) =>
-      RuntimeSync.defineVar(variable, value),
-    'Action.LookupVar': ({ variable }) => RuntimeSync.lookupVar(variable),
-    'Action.PushStack': () => RuntimeSync.pushStack(),
-    'Action.PopStack': () => RuntimeSync.popStack(),
+      Runtime.defineVar(variable, value),
+    'Action.LookupVar': ({ variable }) => Runtime.lookupVar(variable),
+    'Action.PushStack': () => Runtime.pushStack(),
+    'Action.PopStack': () => Runtime.popStack(),
     // Control Flow
-    'Action.Step': ({ loc }) => RuntimeSync.step(loc),
+    'Action.Step': ({ loc }) => Runtime.step(loc),
     'Action.ForkFirst': ({ branches }) => {
-      const threads: RuntimeSyncThread<any>[] = branches.map(
-        runInterpreterThread
-      )
-      return RuntimeSync.forkFirst(threads)
+      const threads: RuntimeThread<any>[] = branches.map(runInterpreterThread)
+      return Runtime.forkFirst(threads)
     },
     'Action.ForkAll': ({ branches }) => {
-      const threads: RuntimeSyncThread<any>[] = branches.map(
-        runInterpreterThread
-      )
-      return RuntimeSync.forkAll(threads)
+      const threads: RuntimeThread<any>[] = branches.map(runInterpreterThread)
+      return Runtime.forkAll(threads)
     },
     // Game Effects
     'Action.Exec': ({ fn, args }) =>
-      RuntimeSync.fromEffect(() => {
+      Runtime.fromEffect(() => {
         console.log({ fn, args })
       }),
     'Action.PromptChoice': ({ branches }) =>
-      RuntimeSync.fromEffect(() => {
+      Runtime.fromEffect(() => {
         //TODO: some kinda IO
         //let user pick a branch somehow
         return branches[0]
@@ -39,12 +35,10 @@ const runAction = (action: Action): RuntimeSync<any> =>
 
 const runInterpreterThread = (
   thread: InterpreterThread<any>
-): RuntimeSyncThread<any> => ({
+): RuntimeThread<any> => ({
   runtime: runInterpreter(thread.interpreter),
   loc: thread.loc,
 })
 
-export const runInterpreter = (
-  interpreter: Interpreter<any>
-): RuntimeSync<any> =>
-  interpreter.foldMap(runAction, RuntimeSync.of) as RuntimeSync<any>
+export const runInterpreter = (interpreter: Interpreter<any>): Runtime<any> =>
+  interpreter.foldMap(runAction, Runtime.of) as Runtime<any>

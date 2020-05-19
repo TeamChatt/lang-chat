@@ -21,27 +21,27 @@ type RuntimeEffects<T> = {
   [Symbol.iterator]: () => Iterator<Output>
 }
 
-export type RuntimeSyncThread<R> = {
-  runtime: RuntimeSync<R>
+export type RuntimeThread<R> = {
+  runtime: Runtime<R>
   loc: Loc
 }
 
-export class RuntimeSync<T> {
+export class Runtime<T> {
   readonly run: (state: RuntimeContext) => RuntimeEffects<T>
 
   constructor(run: (state: RuntimeContext) => RuntimeEffects<T>) {
     this.run = run
   }
   // Factory Methods
-  static of<T>(value: T): RuntimeSync<T> {
-    return new RuntimeSync((context) => ({
+  static of<T>(value: T): Runtime<T> {
+    return new Runtime((context) => ({
       value,
       context,
       *[Symbol.iterator]() {},
     }))
   }
-  static fromEffect(io: Effect): RuntimeSync<undefined> {
-    return new RuntimeSync((context) => ({
+  static fromEffect(io: Effect): Runtime<undefined> {
+    return new Runtime((context) => ({
       value: undefined,
       context,
       *[Symbol.iterator]() {
@@ -50,8 +50,8 @@ export class RuntimeSync<T> {
     }))
   }
   // Control Flow
-  static step<T>(loc: Loc): RuntimeSync<T> {
-    return new RuntimeSync((context) => ({
+  static step<T>(loc: Loc): Runtime<T> {
+    return new Runtime((context) => ({
       value: undefined,
       context: stepSeq(loc)(context),
       *[Symbol.iterator]() {},
@@ -59,9 +59,9 @@ export class RuntimeSync<T> {
   }
   // Concurrency
   static forkFirst<T>(
-    threads: RuntimeSyncThread<T>[],
+    threads: RuntimeThread<T>[],
     rtContext?: ParallelRuntimeContext
-  ): RuntimeSync<undefined> {
+  ): Runtime<undefined> {
     const runProcesses = (context) => ({
       value: undefined,
       context,
@@ -71,12 +71,12 @@ export class RuntimeSync<T> {
         yield* runUntilFirst(threads, parallelContext)
       },
     })
-    return new RuntimeSync(runProcesses)
+    return new Runtime(runProcesses)
   }
   static forkAll<T>(
-    threads: RuntimeSyncThread<T>[],
+    threads: RuntimeThread<T>[],
     rtContext?: ParallelRuntimeContext
-  ): RuntimeSync<undefined> {
+  ): Runtime<undefined> {
     const runProcesses = (context) => ({
       value: undefined,
       context,
@@ -86,39 +86,39 @@ export class RuntimeSync<T> {
         yield* runAll(threads, parallelContext)
       },
     })
-    return new RuntimeSync(runProcesses)
+    return new Runtime(runProcesses)
   }
   // Binding
-  static pushStack(): RuntimeSync<undefined> {
-    return new RuntimeSync((context) => ({
+  static pushStack(): Runtime<undefined> {
+    return new Runtime((context) => ({
       value: undefined,
       context: pushStack(context),
       *[Symbol.iterator]() {},
     }))
   }
-  static popStack(): RuntimeSync<undefined> {
-    return new RuntimeSync((context) => ({
+  static popStack(): Runtime<undefined> {
+    return new Runtime((context) => ({
       value: undefined,
       context: popStack(context),
       *[Symbol.iterator]() {},
     }))
   }
-  static defineVar(variable: string, value): RuntimeSync<undefined> {
-    return new RuntimeSync((context) => ({
+  static defineVar(variable: string, value): Runtime<undefined> {
+    return new Runtime((context) => ({
       value: undefined,
       context: defineVar(variable, value)(context),
       *[Symbol.iterator]() {},
     }))
   }
-  static lookupVar(variable: string): RuntimeSync<any> {
-    return new RuntimeSync((context) => ({
+  static lookupVar(variable: string): Runtime<any> {
+    return new Runtime((context) => ({
       value: lookupVar(variable)(context),
       context,
       *[Symbol.iterator]() {},
     }))
   }
 
-  map<R>(f: (t: T) => R): RuntimeSync<R> {
+  map<R>(f: (t: T) => R): Runtime<R> {
     const runMap = (context: RuntimeContext) => {
       const effects = this.run(context)
       return {
@@ -129,12 +129,12 @@ export class RuntimeSync<T> {
         },
       }
     }
-    return new RuntimeSync(runMap)
+    return new Runtime(runMap)
   }
 
   //TODO: is there a better way to type this?
-  flatten<S>(): RuntimeSync<S> {
-    const { run: runOuter } = (this as unknown) as RuntimeSync<RuntimeSync<S>>
+  flatten<S>(): Runtime<S> {
+    const { run: runOuter } = (this as unknown) as Runtime<Runtime<S>>
     const runInner = (context: RuntimeContext) => {
       const outer = runOuter(context)
       const inner = outer.value.run(outer.context)
@@ -148,17 +148,17 @@ export class RuntimeSync<T> {
         },
       }
     }
-    return new RuntimeSync(runInner)
+    return new Runtime(runInner)
   }
 
-  flatMap<R>(f: (t: T) => RuntimeSync<R>): RuntimeSync<R> {
+  flatMap<R>(f: (t: T) => Runtime<R>): Runtime<R> {
     return this.map(f).flatten()
   }
 }
 
 // Thread concurrency
 function* runUntilFirst<T>(
-  threads: RuntimeSyncThread<T>[],
+  threads: RuntimeThread<T>[],
   context: ParallelRuntimeContext
 ): Generator<Output> {
   let parallelContext = context
@@ -186,7 +186,7 @@ function* runUntilFirst<T>(
 }
 
 function* runAll<T>(
-  threads: RuntimeSyncThread<T>[],
+  threads: RuntimeThread<T>[],
   context: ParallelRuntimeContext
 ): Generator<Output> {
   let parallelContext = context
