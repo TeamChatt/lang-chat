@@ -24,6 +24,9 @@ const runAction = (action: Action): Runtime<any> =>
     'Action.Exec': ({ fn, args }) =>
       Runtime.fromEffect(async () => {
         console.log({ fn, args })
+        await new Promise((resolve) => {
+          window.setTimeout(resolve, 1000)
+        })
       }),
     'Action.PromptChoice': ({ branches }) =>
       Runtime.fromEffect(async () => {

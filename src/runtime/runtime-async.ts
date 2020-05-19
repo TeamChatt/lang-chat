@@ -75,38 +75,28 @@ export class Runtime<T> {
   static forkFirst<T>(
     threads: RuntimeThread<T>[],
     rtContext?: ParallelRuntimeContext
-  ): Runtime<undefined> {
+  ): Runtime<T> {
     const runProcesses = (context) => {
       const parallelContext =
         rtContext || forkFirst(threads.map((t) => t.loc))(context)
-      const output = runUntilFirst(threads, parallelContext)
-      return {
-        // TODO: only resolve after threads have completed
-        result: Promise.resolve({
-          context,
-          value: undefined,
-        }),
-        output,
-      }
+      const effects = threads.map((t, i) =>
+        t.runtime.run(parallelContext.threads[i])
+      )
+      return runUntilFirst(effects, context, parallelContext)
     }
     return new Runtime(runProcesses)
   }
   static forkAll<T>(
     threads: RuntimeThread<T>[],
     rtContext?: ParallelRuntimeContext
-  ): Runtime<undefined> {
+  ): Runtime<T[]> {
     const runProcesses = (context) => {
       const parallelContext =
         rtContext || forkAll(threads.map((t) => t.loc))(context)
-      const output = runAll(threads, parallelContext)
-      return {
-        // TODO: only resolve after threads have completed
-        result: Promise.resolve({
-          context,
-          value: undefined,
-        }),
-        output,
-      }
+      const effects = threads.map((t, i) =>
+        t.runtime.run(parallelContext.threads[i])
+      )
+      return runAll(effects, context, parallelContext)
     }
     return new Runtime(runProcesses)
   }
@@ -189,30 +179,70 @@ export class Runtime<T> {
 }
 
 // Thread concurrency
-const runUntilFirst = <T>(
-  threads: RuntimeThread<T>[],
+const set = (i, value, arr) => {
+  const newArr = [...arr]
+  newArr[i] = value
+  return newArr
+}
+type UpdateOutput = (ctx: ParallelRuntimeContext) => Output
+const mergeOutput = (
+  outputs: Stream<Output>[],
   context: ParallelRuntimeContext
 ): Stream<Output> => {
-  let parallelContext = context
-  let threadQueue = threads
-    .map((t) => t.runtime)
-    .map((t, i) => t.run(parallelContext.threads[i])[Symbol.iterator]())
-  let contextQueue = parallelContext.threads
+  const streams: Stream<UpdateOutput>[] = outputs.map((output, i) =>
+    output.map(([context, effect]) => (parallelContext) => {
+      const newThreads = set(i, context, parallelContext.threads)
+      const newContext = stepParallel(newThreads)(parallelContext)
+      return [newContext, effect]
+    })
+  )
 
-  //TODO: run threads in parallel. Aggregate output tagged with correct runtime contexts
-  return Stream.empty()
+  return Stream.merge(...streams)
+    .fold(
+      (output: Output, f) => {
+        const [context, effect] = output
+        const [newContext, newEffect] = f(context as ParallelRuntimeContext)
+        return [newContext, newEffect] as Output
+      },
+      [context, () => Promise.resolve(undefined)]
+    )
+    .drop(1)
+}
+
+const runUntilFirst = <T>(
+  effects: RuntimeEffects<T>[],
+  context: RuntimeContext,
+  parallelContext: ParallelRuntimeContext
+): RuntimeEffects<T> => {
+  const result = Promise.race(effects.map((e) => e.result)).then((r) => ({
+    value: r.value,
+    context,
+  }))
+  const output = mergeOutput(
+    effects.map((e) => e.output),
+    parallelContext
+  ).endWhen(Stream.fromPromise(result))
+  return {
+    result,
+    output,
+  }
 }
 
 const runAll = <T>(
-  threads: RuntimeThread<T>[],
-  context: ParallelRuntimeContext
-): Stream<Output> => {
-  let parallelContext = context
-  let threadQueue = threads
-    .map((t) => t.runtime)
-    .map((t, i) => t.run(parallelContext.threads[i])[Symbol.iterator]())
-  let contextQueue = parallelContext.threads
-
-  //TODO: run threads in parallel. Aggregate output tagged with correct runtime contexts
-  return Stream.empty()
+  effects: RuntimeEffects<T>[],
+  context: RuntimeContext,
+  parallelContext: ParallelRuntimeContext
+): RuntimeEffects<T[]> => {
+  const result = Promise.all(effects.map((e) => e.result)).then((results) => ({
+    value: results.map((r) => r.value),
+    context,
+  }))
+  const output = mergeOutput(
+    effects.map((e) => e.output),
+    parallelContext
+  )
+  return {
+    result,
+    output,
+  }
 }
