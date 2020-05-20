@@ -40,11 +40,10 @@ const resumeRuntime = (rt: RuntimeContext, program: Prog): Runtime<any> =>
       const processes = resumeThreads(threads, program)
       return Runtime.forkAll(processes, rt as ParallelRuntimeContext)
     },
-  }).flatMap(() =>
-    // TODO: should this yield something instead of undefined?
+  }).flatMap((value) =>
     rt.stack
       ? Runtime.popStack().flatMap(() => resumeRuntime(rt.stack, program))
-      : Runtime.of(undefined)
+      : Runtime.of(value)
   )
 
 const resumeThreads = (
