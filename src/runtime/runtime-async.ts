@@ -1,5 +1,6 @@
 import { Stream } from 'xstream'
 import Defer from '../util/defer'
+import { Maybe } from '../monad/maybe'
 import { Loc } from '../static/location'
 import { Driver } from './driver'
 import {
@@ -129,7 +130,7 @@ export class Runtime<T> {
       output: Stream.empty(),
     }))
   }
-  static lookupVar(variable: string): Runtime<any> {
+  static lookupVar(variable: string): Runtime<Maybe<any>> {
     return new Runtime((context) => ({
       result: Promise.resolve({
         context,
@@ -153,7 +154,6 @@ export class Runtime<T> {
     return new Runtime(runMap)
   }
 
-  //TODO: is there a better way to type this?
   flatten<S>(): Runtime<S> {
     const { run: runOuter } = (this as unknown) as Runtime<Runtime<S>>
     const runInner = (context: RuntimeContext) => {

@@ -8,7 +8,13 @@ const runAction = (action: Action): Runtime<any> =>
     // Variable Binding
     'Action.DefineVar': ({ variable, value }) =>
       Runtime.defineVar(variable, value),
-    'Action.LookupVar': ({ variable }) => Runtime.lookupVar(variable),
+    'Action.LookupVar': ({ variable }) =>
+      Runtime.lookupVar(variable).flatMap((maybeValue) =>
+        maybeValue.maybe(
+          (val) => Runtime.of(val),
+          () => Runtime.of({})
+        )
+      ),
     'Action.PushStack': () => Runtime.pushStack(),
     'Action.PopStack': () => Runtime.popStack(),
     // Control Flow

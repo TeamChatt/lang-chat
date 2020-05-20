@@ -1,4 +1,5 @@
 import match from '../util/match'
+import { Maybe } from '../monad/maybe'
 import { Loc, top } from '../static/location'
 import {
   BindingContext,
@@ -65,10 +66,12 @@ export const defineVar = (variable: string, value: Result) => (
       }),
   })
 
-export const lookupVar = (variable: string) => (rt: RuntimeContext): Result =>
+export const lookupVar = (variable: string) => (
+  rt: RuntimeContext
+): Maybe<Result> =>
   match(rt, {
     'RuntimeContext.Seq': ({ bindings }) =>
-      bindingLookupVar(variable)(bindings), // TODO: return a maybe?
+      bindingLookupVar(variable)(bindings),
   })
 
 export const popStack = (rt: RuntimeContext): RuntimeContext => rt.stack

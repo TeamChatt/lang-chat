@@ -1,4 +1,5 @@
 import { Loc } from '../static/location'
+import { Maybe } from '../monad/maybe'
 import { Driver } from './driver'
 import {
   RuntimeContext,
@@ -111,7 +112,7 @@ export class Runtime<T> {
       *[Symbol.iterator]() {},
     }))
   }
-  static lookupVar(variable: string): Runtime<any> {
+  static lookupVar(variable: string): Runtime<Maybe<any>> {
     return new Runtime((context) => ({
       value: lookupVar(variable)(context),
       context,
@@ -133,7 +134,6 @@ export class Runtime<T> {
     return new Runtime(runMap)
   }
 
-  //TODO: is there a better way to type this?
   flatten<S>(): Runtime<S> {
     const { run: runOuter } = (this as unknown) as Runtime<Runtime<S>>
     const runInner = (context: RuntimeContext) => {
