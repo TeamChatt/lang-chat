@@ -44,4 +44,7 @@ io.subscribe({
     console.log(ctx)
     effect(driver)
   },
+  error: (err) => {
+    console.error(err)
+  },
 })

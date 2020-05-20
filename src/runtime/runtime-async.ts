@@ -15,6 +15,7 @@ import {
   stepParallel,
   ParallelRuntimeContext,
 } from './runtime-context'
+import { RuntimeError } from './runtime-error'
 
 export type Effect<T> = (driver: Driver) => Promise<T>
 export type Output = [RuntimeContext, Effect<any>]
@@ -71,6 +72,12 @@ export class Runtime<T> {
         value: undefined,
       }),
       output: Stream.empty(),
+    }))
+  }
+  static fail(reason: string): Runtime<undefined> {
+    return new Runtime((context) => ({
+      result: new Promise((resolve) => {}), // Never resolve
+      output: Stream.throw(new RuntimeError(reason, context)),
     }))
   }
   // Concurrency

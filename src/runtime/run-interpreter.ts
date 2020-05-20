@@ -12,7 +12,7 @@ const runAction = (action: Action): Runtime<any> =>
       Runtime.lookupVar(variable).flatMap((maybeValue) =>
         maybeValue.maybe(
           (val) => Runtime.of(val),
-          () => Runtime.of({})
+          () => Runtime.fail(`Unknown variable "${variable}"`)
         )
       ),
     'Action.PushStack': () => Runtime.pushStack(),

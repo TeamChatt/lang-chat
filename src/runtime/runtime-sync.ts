@@ -13,6 +13,7 @@ import {
   stepParallel,
   ParallelRuntimeContext,
 } from './runtime-context'
+import { RuntimeError } from './runtime-error'
 
 export type Effect = (driver: Driver) => any
 export type Output = [RuntimeContext, Effect]
@@ -57,6 +58,15 @@ export class Runtime<T> {
       value: undefined,
       context: stepSeq(loc)(context),
       *[Symbol.iterator]() {},
+    }))
+  }
+  static fail(reason: string): Runtime<undefined> {
+    return new Runtime((context) => ({
+      value: undefined,
+      context,
+      *[Symbol.iterator]() {
+        throw new RuntimeError(reason, context)
+      },
     }))
   }
   // Concurrency
