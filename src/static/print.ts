@@ -68,8 +68,18 @@ const printBranch = (branch) =>
         str(' '),
         printExpr(cmdExpr),
       ]),
-    'Branch.Fork': ({ cmdExpr }) => seq([str('fork'), printExpr(cmdExpr)]),
-    'Branch.Cond': () => Doc.Empty, //TODO
+    'Branch.Fork': ({ cmdExpr }) =>
+      seq([str('fork'), str(' '), printExpr(cmdExpr)]),
+    'Branch.Cond': ({ condition, result }) =>
+      seq([
+        str('cond'),
+        str(' '),
+        printExpr(condition),
+        str(' '),
+        str('->'),
+        str(' '),
+        printExpr(result),
+      ]),
   })
 
 // Program
