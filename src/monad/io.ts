@@ -20,7 +20,6 @@ export class IO<T> {
     return IO.impure(runNext)
   }
 
-  //TODO: is there a better way to type this?
   flatten<S>(): IO<S> {
     return flattenIO((this as unknown) as IO<IO<S>>)
   }
