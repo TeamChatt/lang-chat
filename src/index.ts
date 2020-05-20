@@ -45,6 +45,6 @@ io.subscribe({
     effect(driver)
   },
   error: (err) => {
-    console.error(err)
+    driver.error(err)
   },
 })

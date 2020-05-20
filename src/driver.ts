@@ -7,4 +7,7 @@ export const driver: Driver = {
   branch: async (branches) => {
     return branches[0]
   },
+  error: (err) => {
+    console.error(err)
+  },
 }

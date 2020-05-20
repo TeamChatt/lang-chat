@@ -7,6 +7,9 @@ export const testDriver = {
   branch: async (branches) => {
     return branches[0]
   },
+  error: (err) => {
+    throw err
+  },
 }
 
 export const testProgram = (t, program, expectedOutput) => {
