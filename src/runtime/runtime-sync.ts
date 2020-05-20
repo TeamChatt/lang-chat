@@ -1,4 +1,5 @@
 import { Loc } from '../static/location'
+import { Driver } from './driver'
 import {
   RuntimeContext,
   lookupVar,
@@ -12,7 +13,7 @@ import {
   ParallelRuntimeContext,
 } from './runtime-context'
 
-export type Effect = () => any
+export type Effect = (driver: Driver) => any
 export type Output = [RuntimeContext, Effect]
 
 type RuntimeEffects<T> = {

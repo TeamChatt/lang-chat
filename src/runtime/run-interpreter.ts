@@ -1,6 +1,7 @@
 import match from '../util/match'
 import { Runtime, RuntimeThread } from './runtime-async'
 import { Action, Interpreter, InterpreterThread } from './interpreter'
+import { Driver } from './driver'
 
 const runAction = (action: Action): Runtime<any> =>
   match(action, {
@@ -22,17 +23,12 @@ const runAction = (action: Action): Runtime<any> =>
     },
     // Game Effects
     'Action.Exec': ({ fn, args }) =>
-      Runtime.fromEffect(async () => {
-        console.log({ fn, args })
-        await new Promise((resolve) => {
-          window.setTimeout(resolve, 1000)
-        })
+      Runtime.fromEffect(async (driver: Driver) => {
+        return driver.exec(fn, args)
       }),
     'Action.PromptChoice': ({ branches }) =>
-      Runtime.fromEffect(async () => {
-        //TODO: some kinda IO
-        //let user pick a branch somehow
-        return branches[0]
+      Runtime.fromEffect(async (driver: Driver) => {
+        return driver.branch(branches)
       }),
   })
 

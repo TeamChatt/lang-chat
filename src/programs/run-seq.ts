@@ -11,3 +11,5 @@ export const program: Prog = {
     Cmd.Run(Expr.Var('label')),
   ],
 }
+
+export const expectedOutput = ['exec', 'exec', 'exec']

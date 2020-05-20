@@ -12,3 +12,5 @@ export const program: Prog = {
     Cmd.Run(Expr.Var('start')),
   ],
 }
+
+export const expectedOutput = ['exec-1', 'exec-2']

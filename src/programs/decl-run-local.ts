@@ -24,3 +24,5 @@ export const program: Prog = {
     Cmd.Run(Expr.Var('label1')),
   ],
 }
+
+export const expectedOutput = ['exec-from-local', 'exec-from-top-level']

@@ -2,6 +2,7 @@ import { program } from './programs/fork-first'
 import print from './static/print'
 import tagLocation from './static/tag-location'
 import { run, resume, RuntimeContext } from './runtime'
+import { driver } from './driver'
 
 const rtContext: RuntimeContext = {
   kind: 'RuntimeContext.ParFirst',
@@ -41,6 +42,6 @@ const io = run(taggedProgram)
 io.subscribe({
   next: ([ctx, effect]) => {
     console.log(ctx)
-    effect()
+    effect(driver)
   },
 })

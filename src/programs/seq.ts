@@ -8,3 +8,5 @@ export const program: Prog = {
     Cmd.Exec({ fn: 'exec-4', args: [] }),
   ],
 }
+
+export const expectedOutput = ['exec-1', 'exec-2', 'exec-3', 'exec-4']

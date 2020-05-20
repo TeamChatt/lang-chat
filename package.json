@@ -4,15 +4,27 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "parcel index.html"
+    "start": "parcel index.html",
+    "test": "ava",
+    "test:watch": "ava --watch"
   },
   "devDependencies": {
+    "ava": "^3.8.2",
     "parcel": "^1.12.4",
+    "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
   },
   "browserslist": "last 2 Chrome versions",
   "dependencies": {
     "fluture": "^12.2.0",
     "xstream": "^11.11.0"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   }
 }

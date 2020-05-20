@@ -1,6 +1,7 @@
 import { Stream } from 'xstream'
 import Defer from '../util/defer'
 import { Loc } from '../static/location'
+import { Driver } from './driver'
 import {
   RuntimeContext,
   lookupVar,
@@ -14,7 +15,7 @@ import {
   ParallelRuntimeContext,
 } from './runtime-context'
 
-export type Effect<T> = () => Promise<T>
+export type Effect<T> = (driver: Driver) => Promise<T>
 export type Output = [RuntimeContext, Effect<any>]
 
 type RuntimeResult<T> = {
@@ -50,8 +51,8 @@ export class Runtime<T> {
   static fromEffect<T>(io: Effect<T>): Runtime<T> {
     return new Runtime((context) => {
       const defer = Defer<T>()
-      const effect = async () => {
-        const v = await io()
+      const effect = async (driver) => {
+        const v = await io(driver)
         defer.resolve(v)
         return v
       }
