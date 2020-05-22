@@ -5,6 +5,7 @@ export const driver: Driver = {
     console.log({ fn, args })
   },
   branch: async (branches) => {
+    console.log({ branches })
     return branches[0]
   },
   error: (err) => {
