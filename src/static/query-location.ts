@@ -32,7 +32,7 @@ const queryCmd = (query: Loc) => (cmd: Cmd): Maybe<Cmd[]> =>
 
 const queryCmdInner = (query: Loc) => (cmd: Cmd): Maybe<Cmd[]> =>
   match(cmd, {
-    'Cmd.Exec': () => Maybe.nothing(),
+    'Cmd.Exec': () => Maybe.nothing<Cmd[]>(),
     'Cmd.Run': ({ expr }) => queryExpr(query)(expr),
     'Cmd.Def': ({ value }) => queryExpr(query)(value),
     'Cmd.ChooseOne': ({ branches }) => queryBranches(query)(branches),
@@ -50,7 +50,7 @@ const queryExpr = (query: Loc) => (expr: Expr): Maybe<Cmd[]> =>
     'Expr.Cmds': ({ cmds }) => queryCmds(query)(cmds),
   })
 
-const queryBranches = (query: Loc) => (branches) =>
+const queryBranches = (query: Loc) => (branches): Maybe<Cmd[]> =>
   alts(branches.map(queryBranch(query)))
 
 const queryBranch = (query: Loc) => (branch): Maybe<Cmd[]> =>

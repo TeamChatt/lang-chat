@@ -4,9 +4,9 @@ import { Loc } from '../static/location'
 
 // Result types
 export const Result = {
-  Lit: (value: any) => ({ kind: 'Result.Lit', value }),
-  Cmd: (cmd: Cmd) => ({ kind: 'Result.Cmd', cmd }),
-  Cmds: (cmds: Cmd[]) => ({ kind: 'Result.Cmds', cmds }),
+  Lit: (value: any): Result => ({ kind: 'Result.Lit', value }),
+  Cmd: (cmd: Cmd): Result => ({ kind: 'Result.Cmd', cmd }),
+  Cmds: (cmds: Cmd[]): Result => ({ kind: 'Result.Cmds', cmds }),
 }
 export type Result = ResultLit | ResultCmd | ResultCmds
 
