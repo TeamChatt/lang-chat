@@ -3,6 +3,11 @@ import { Runtime, RuntimeThread } from './runtime-async'
 import { Action, Interpreter, InterpreterThread } from './interpreter'
 import { Driver } from './driver'
 
+const diff = <T>(equals: (t1: T, t2: T) => Boolean) => (
+  arr1: T[],
+  arr2: T[]
+): T[] => arr1.filter((x) => !arr2.find((y) => equals(x, y)))
+
 const runAction = (action: Action): Runtime<any> =>
   match(action, {
     // Variable Binding
@@ -32,10 +37,14 @@ const runAction = (action: Action): Runtime<any> =>
       Runtime.fromEffect(async (driver: Driver) => {
         return driver.exec(fn, args)
       }),
+    'Action.FilterChoices': ({ branches }) =>
+      Runtime.visitedBranches().map((visited) =>
+        diff((x: any, y: any) => x.index === y.index)(branches, visited)
+      ),
     'Action.PromptChoice': ({ branches }) =>
       Runtime.fromEffect(async (driver: Driver) => {
         return driver.branch(branches)
-      }),
+      }).flatMap((branch) => Runtime.visitBranch(branch).map(() => branch)),
   })
 
 const runInterpreterThread = (

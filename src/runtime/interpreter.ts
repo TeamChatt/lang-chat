@@ -31,6 +31,7 @@ export type Action =
   | ActionStep
   | ActionForkFirst
   | ActionForkAll
+  | ActionFilterChoices
   | ActionPromptChoice
   | ActionPushStack
   | ActionPopStack
@@ -61,9 +62,13 @@ interface ActionForkAll {
   kind: 'Action.ForkAll'
   branches: InterpreterThread<any>[]
 }
+interface ActionFilterChoices {
+  kind: 'Action.FilterChoices'
+  branches: Choice[]
+}
 interface ActionPromptChoice {
   kind: 'Action.PromptChoice'
-  branches: PromptChoice[]
+  branches: Choice[]
 }
 interface ActionPushStack {
   kind: 'Action.PushStack'
@@ -72,7 +77,7 @@ interface ActionPopStack {
   kind: 'Action.PopStack'
 }
 
-type PromptChoice = {
+type Choice = {
   label: string
   index: number
 }
@@ -113,8 +118,13 @@ export const forkFirst = <R>(
 export const forkAll = <R>(branches: InterpreterThread<R>[]): Interpreter<R> =>
   Free.lift({ kind: 'Action.ForkAll', branches })
 
-export const promptChoice = <R>(branches: any[]): Interpreter<R> =>
-  Free.lift({ kind: 'Action.PromptChoice', branches })
+export const promptChoice = <R>(choiceBranches: Choice[]): Interpreter<R> =>
+  Free.lift({ kind: 'Action.PromptChoice', branches: choiceBranches })
+
+export const filterChoices = <R>(
+  choiceBranches: Choice[]
+): Interpreter<Choice[]> =>
+  Free.lift({ kind: 'Action.FilterChoices', branches: choiceBranches })
 
 // User defined commands
 export const exec = <R>({ fn, args }): Interpreter<R> =>

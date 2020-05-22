@@ -12,6 +12,8 @@ import {
   stepSeq,
   stepParallel,
   ParallelRuntimeContext,
+  visitBranch,
+  visitedBranches,
 } from './runtime-context'
 import { RuntimeError } from './runtime-error'
 
@@ -53,10 +55,24 @@ export class Runtime<T> {
     }))
   }
   // Control Flow
-  static step<T>(loc: Loc): Runtime<T> {
+  static step(loc: Loc): Runtime<undefined> {
     return new Runtime((context) => ({
       value: undefined,
       context: stepSeq(loc)(context),
+      *[Symbol.iterator]() {},
+    }))
+  }
+  static visitBranch(choiceBranch: any): Runtime<undefined> {
+    return new Runtime((context) => ({
+      value: undefined,
+      context: visitBranch(choiceBranch)(context),
+      *[Symbol.iterator]() {},
+    }))
+  }
+  static visitedBranches(): Runtime<any[]> {
+    return new Runtime((context) => ({
+      value: visitedBranches(context),
+      context,
       *[Symbol.iterator]() {},
     }))
   }

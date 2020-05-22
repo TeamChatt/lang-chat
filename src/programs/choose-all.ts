@@ -5,15 +5,22 @@ export const program: Prog = {
     Cmd.ChooseAll([
       Branch.Choice({
         label: 'first',
-        cmdExpr: Expr.Cmd(Cmd.Exec({ fn: 'exec-first', args: [] })),
+        cmdExpr: Expr.Cmds([Cmd.Exec({ fn: 'exec-first', args: [] })]),
       }),
       Branch.Choice({
         label: 'second',
-        cmdExpr: Expr.Cmd(Cmd.Exec({ fn: 'exec-second', args: [] })),
+        cmdExpr: Expr.Cmds([
+          Cmd.Exec({ fn: 'exec-second', args: [] }),
+          Cmd.Exec({ fn: 'exec-second', args: [] }),
+        ]),
       }),
       Branch.Choice({
         label: 'third',
-        cmdExpr: Expr.Cmd(Cmd.Exec({ fn: 'exec-third', args: [] })),
+        cmdExpr: Expr.Cmds([
+          Cmd.Exec({ fn: 'exec-third', args: [] }),
+          Cmd.Exec({ fn: 'exec-third', args: [] }),
+          Cmd.Exec({ fn: 'exec-third', args: [] }),
+        ]),
       }),
     ]),
   ],

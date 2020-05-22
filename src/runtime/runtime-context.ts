@@ -1,6 +1,6 @@
 import match from '../util/match'
 import { Maybe } from '../monad/maybe'
-import { Loc, top } from '../static/location'
+import { Loc, top, equals } from '../static/location'
 import {
   BindingContext,
   empty as bindingEmpty,
@@ -16,6 +16,7 @@ interface CtxSeq {
   kind: 'RuntimeContext.Seq'
   bindings: BindingContext
   stack?: RuntimeContext
+  choices?: any[]
   loc: Loc
 }
 interface CtxParFirst {
@@ -29,11 +30,17 @@ interface CtxParAll {
   stack?: RuntimeContext
 }
 
-const ctxSeq = ({ bindings, stack, loc }): RuntimeContext => ({
+const ctxSeq = ({
+  bindings,
+  stack,
+  loc,
+  choices = undefined,
+}): RuntimeContext => ({
   kind: 'RuntimeContext.Seq',
   bindings,
   stack,
   loc,
+  choices,
 })
 
 const ctxParFirst = ({ threads, stack }): ParallelRuntimeContext => ({
@@ -86,6 +93,24 @@ export const pushStack = (rt: RuntimeContext): RuntimeContext =>
       }),
   })
 
+export const visitedBranches = (rt: RuntimeContext): any[] =>
+  match(rt, {
+    'RuntimeContext.Seq': ({ choices = [] }) => choices,
+  })
+
+export const visitBranch = (choiceBranch: any[]) => (
+  rt: RuntimeContext
+): RuntimeContext =>
+  match(rt, {
+    'RuntimeContext.Seq': ({ bindings, stack, loc, choices = [] }) =>
+      ctxSeq({
+        bindings,
+        stack,
+        loc,
+        choices: [choiceBranch, ...choices],
+      }),
+  })
+
 const spawn = (loc: Loc) => (rt: RuntimeContext): RuntimeContext =>
   match(rt, {
     'RuntimeContext.Seq': ({ bindings }) =>
@@ -130,10 +155,11 @@ export const stepParallel = (newThreads: RuntimeContext[]) => (
 
 export const stepSeq = (loc: Loc) => (rt: RuntimeContext): RuntimeContext =>
   match(rt, {
-    'RuntimeContext.Seq': ({ stack, bindings }) =>
+    'RuntimeContext.Seq': ({ stack, bindings, choices }) =>
       ctxSeq({
         bindings,
         stack,
         loc,
+        choices: equals(loc)((rt as CtxSeq).loc) ? choices : [],
       }),
   })

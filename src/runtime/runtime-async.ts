@@ -14,6 +14,8 @@ import {
   stepSeq,
   stepParallel,
   ParallelRuntimeContext,
+  visitBranch,
+  visitedBranches,
 } from './runtime-context'
 import { RuntimeError } from './runtime-error'
 
@@ -69,6 +71,24 @@ export class Runtime<T> {
     return new Runtime((context) => ({
       result: Promise.resolve({
         context: stepSeq(loc)(context),
+        value: undefined,
+      }),
+      output: Stream.empty(),
+    }))
+  }
+  static visitedBranches(): Runtime<any[]> {
+    return new Runtime((context) => ({
+      result: Promise.resolve({
+        context,
+        value: visitedBranches(context),
+      }),
+      output: Stream.empty(),
+    }))
+  }
+  static visitBranch(choiceBranch: any): Runtime<undefined> {
+    return new Runtime((context) => ({
+      result: Promise.resolve({
+        context: visitBranch(choiceBranch)(context),
         value: undefined,
       }),
       output: Stream.empty(),
