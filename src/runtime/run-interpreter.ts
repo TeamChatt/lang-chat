@@ -41,7 +41,7 @@ const runAction = (action: Action): Runtime<any> =>
       Runtime.visitedBranches().map((visited) =>
         diff((x: any, y: any) => x.index === y.index)(branches, visited)
       ),
-    'Action.PromptChoice': ({ branches }) =>
+    'Action.Choice': ({ branches }) =>
       Runtime.fromEffect(async (driver: Driver) => {
         return driver.branch(branches)
       }).flatMap((branch) => Runtime.visitBranch(branch).map(() => branch)),

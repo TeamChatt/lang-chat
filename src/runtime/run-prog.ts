@@ -12,11 +12,12 @@ import {
   exec,
   forkFirst,
   forkAll,
-  promptChoice,
+  choice,
   scoped,
   step,
   filterChoices,
 } from './interpreter'
+import { fromBranch, toBranch } from './choice'
 
 const sequenceM = <T>(
   array: T[],
@@ -77,22 +78,12 @@ const runResult = (result: Result): Interpreter<any> =>
 
 // Choices
 type ChoiceBranch = { label: string; cmds: Cmd[] } // TODO: import definitions instead of redeclaring?
-type Choice = { label: string; index: number }
-
-const toPrompt = (choices: ChoiceBranch[]) => (
-  choiceBranch: ChoiceBranch
-): Choice => ({
-  index: choices.indexOf(choiceBranch),
-  label: choiceBranch.label,
-})
-const fromPrompt = (choices: ChoiceBranch[]) => ({ index }: Choice) =>
-  choices[index]
 
 const filteredChoices = (
   choiceBranches: ChoiceBranch[]
 ): Interpreter<ChoiceBranch[]> =>
-  filterChoices(choiceBranches.map(toPrompt(choiceBranches))).map((choices) =>
-    choices.map(fromPrompt(choiceBranches))
+  filterChoices(choiceBranches.map(fromBranch(choiceBranches))).map((choices) =>
+    choices.map(toBranch(choiceBranches))
   )
 
 const runChooseOne = (
@@ -112,8 +103,8 @@ const runChooseAll = (choiceBranches: ChoiceBranch[]): Interpreter<any> =>
 const runChoices = (originalChoices: ChoiceBranch[]) => (
   choices: ChoiceBranch[]
 ): Interpreter<ChoiceBranch> =>
-  promptChoice(choices.map(toPrompt(originalChoices)))
-    .map(fromPrompt(originalChoices))
+  choice(choices.map(fromBranch(originalChoices)))
+    .map(toBranch(originalChoices))
     .flatMap((choiceBranch) => runBranch(choiceBranch))
 
 // Expressions

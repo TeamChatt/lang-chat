@@ -1,6 +1,7 @@
 import { Free } from '../monad/free'
 import { Cmd } from '../static/ast'
 import { Loc } from '../static/location'
+import { Choice } from './choice'
 
 // Result types
 export const Result = {
@@ -32,7 +33,7 @@ export type Action =
   | ActionForkFirst
   | ActionForkAll
   | ActionFilterChoices
-  | ActionPromptChoice
+  | ActionChoice
   | ActionPushStack
   | ActionPopStack
 
@@ -66,8 +67,8 @@ interface ActionFilterChoices {
   kind: 'Action.FilterChoices'
   branches: Choice[]
 }
-interface ActionPromptChoice {
-  kind: 'Action.PromptChoice'
+interface ActionChoice {
+  kind: 'Action.Choice'
   branches: Choice[]
 }
 interface ActionPushStack {
@@ -75,11 +76,6 @@ interface ActionPushStack {
 }
 interface ActionPopStack {
   kind: 'Action.PopStack'
-}
-
-type Choice = {
-  label: string
-  index: number
 }
 
 export type Interpreter<R> = Free<Action, R>
@@ -118,10 +114,10 @@ export const forkFirst = <R>(
 export const forkAll = <R>(branches: InterpreterThread<R>[]): Interpreter<R> =>
   Free.lift({ kind: 'Action.ForkAll', branches })
 
-export const promptChoice = <R>(choiceBranches: Choice[]): Interpreter<R> =>
-  Free.lift({ kind: 'Action.PromptChoice', branches: choiceBranches })
+export const choice = <R>(choiceBranches: Choice[]): Interpreter<R> =>
+  Free.lift({ kind: 'Action.Choice', branches: choiceBranches })
 
-export const filterChoices = <R>(
+export const filterChoices = (
   choiceBranches: Choice[]
 ): Interpreter<Choice[]> =>
   Free.lift({ kind: 'Action.FilterChoices', branches: choiceBranches })

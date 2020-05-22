@@ -16,6 +16,7 @@ import {
   visitedBranches,
 } from './runtime-context'
 import { RuntimeError } from './runtime-error'
+import { Choice } from './choice'
 
 export type Effect = (driver: Driver) => any
 export type Output = [RuntimeContext, Effect]
@@ -62,14 +63,14 @@ export class Runtime<T> {
       *[Symbol.iterator]() {},
     }))
   }
-  static visitBranch(choiceBranch: any): Runtime<undefined> {
+  static visitBranch(choice: Choice): Runtime<undefined> {
     return new Runtime((context) => ({
       value: undefined,
-      context: visitBranch(choiceBranch)(context),
+      context: visitBranch(choice)(context),
       *[Symbol.iterator]() {},
     }))
   }
-  static visitedBranches(): Runtime<any[]> {
+  static visitedBranches(): Runtime<Choice[]> {
     return new Runtime((context) => ({
       value: visitedBranches(context),
       context,

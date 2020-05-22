@@ -2,6 +2,7 @@ import { Stream } from 'xstream'
 import Defer from '../util/defer'
 import { Maybe } from '../monad/maybe'
 import { Loc } from '../static/location'
+import { Choice } from './choice'
 import { Driver } from './driver'
 import {
   RuntimeContext,
@@ -76,7 +77,7 @@ export class Runtime<T> {
       output: Stream.empty(),
     }))
   }
-  static visitedBranches(): Runtime<any[]> {
+  static visitedBranches(): Runtime<Choice[]> {
     return new Runtime((context) => ({
       result: Promise.resolve({
         context,
@@ -85,10 +86,10 @@ export class Runtime<T> {
       output: Stream.empty(),
     }))
   }
-  static visitBranch(choiceBranch: any): Runtime<undefined> {
+  static visitBranch(choice: Choice): Runtime<undefined> {
     return new Runtime((context) => ({
       result: Promise.resolve({
-        context: visitBranch(choiceBranch)(context),
+        context: visitBranch(choice)(context),
         value: undefined,
       }),
       output: Stream.empty(),

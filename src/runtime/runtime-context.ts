@@ -8,6 +8,7 @@ import {
   lookupVar as bindingLookupVar,
 } from './binding-context'
 import { Result } from './interpreter'
+import { Choice } from './choice'
 
 export type RuntimeContext = CtxSeq | CtxParFirst | CtxParAll
 export type ParallelRuntimeContext = CtxParFirst | CtxParAll
@@ -16,7 +17,7 @@ interface CtxSeq {
   kind: 'RuntimeContext.Seq'
   bindings: BindingContext
   stack?: RuntimeContext
-  choices?: any[]
+  choices?: Choice[]
   loc: Loc
 }
 interface CtxParFirst {
@@ -93,12 +94,12 @@ export const pushStack = (rt: RuntimeContext): RuntimeContext =>
       }),
   })
 
-export const visitedBranches = (rt: RuntimeContext): any[] =>
+export const visitedBranches = (rt: RuntimeContext): Choice[] =>
   match(rt, {
     'RuntimeContext.Seq': ({ choices = [] }) => choices,
   })
 
-export const visitBranch = (choiceBranch: any[]) => (
+export const visitBranch = (choice: Choice) => (
   rt: RuntimeContext
 ): RuntimeContext =>
   match(rt, {
@@ -107,7 +108,7 @@ export const visitBranch = (choiceBranch: any[]) => (
         bindings,
         stack,
         loc,
-        choices: [choiceBranch, ...choices],
+        choices: [choice, ...choices],
       }),
   })
 
