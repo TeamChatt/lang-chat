@@ -23,15 +23,15 @@ const rtContext: RuntimeContext = {
       },
     ],
   },
-  loc: ['commands', '[0]', 'branches', '[1]', 'cmdExpr', 'cmds', '[0]'],
+  loc: ['commands', '[0]', 'branches', '[1]', 'cmdExpr', 'cmds', '[1]'],
   choices: [],
 }
 const taggedProgram = tagLocation(program)
 
 console.log(print(taggedProgram))
 
-const io = run(taggedProgram)
-// const io = resume(rtContext, taggedProgram)
+// const io = run(taggedProgram)
+const io = resume(rtContext, taggedProgram)
 
 io.subscribe({
   next: ([ctx, effect]) => {

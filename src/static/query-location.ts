@@ -55,7 +55,7 @@ const queryBranches = (query: Loc) => (branches): Maybe<Cmd[]> =>
 
 const queryBranch = (query: Loc) => (branch): Maybe<Cmd[]> =>
   match(branch, {
-    'Branch.Choice': () => Maybe.nothing(),
+    'Branch.Choice': ({ cmdExpr }) => queryExpr(query)(cmdExpr),
     'Branch.Fork': ({ loc, cmdExpr }) =>
       equals(query)(loc)
         ? Maybe.just([Cmd.Run(cmdExpr)])
@@ -66,8 +66,6 @@ const queryBranch = (query: Loc) => (branch): Maybe<Cmd[]> =>
   })
 
 const queryProg = (loc: Loc) => ({ commands }: Prog): Maybe<Cmd[]> =>
-  equals(loc)(top)
-    ? Maybe.just(commands)
-    : queryCmds(loc)(commands).map((cmds) => cmds.slice(1))
+  equals(loc)(top) ? Maybe.just(commands) : queryCmds(loc)(commands) //.map((cmds) => cmds.slice(1))
 
 export default queryProg
