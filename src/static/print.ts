@@ -48,9 +48,9 @@ const printExpr = (expr: Expr) =>
   match(expr, {
     'Expr.Var': ({ variable }) => str(variable),
     'Expr.Lit': ({ value }) => str(`${value}`),
-    'Expr.Cond': ({ branches }) => printBranches(branches),
+    'Expr.Cond': ({ branches }) => seq([str('cond'), printBranches(branches)]),
     'Expr.Cmd': ({ cmd }) => printCmd(cmd),
-    'Expr.Cmds': ({ cmds }) => printCmds(cmds),
+    'Expr.Cmds': ({ cmds }) => seq([str('do'), printCmds(cmds)]),
   })
 
 // Branch types
@@ -72,7 +72,7 @@ const printBranch = (branch) =>
       seq([str('fork'), str(' '), printExpr(cmdExpr)]),
     'Branch.Cond': ({ condition, result }) =>
       seq([
-        str('cond'),
+        str('case'),
         str(' '),
         printExpr(condition),
         str(' '),

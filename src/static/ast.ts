@@ -1,32 +1,14 @@
 import { Loc } from './location'
 
+// ----------------------------------------------------------------------------
+// AST Types
+// ----------------------------------------------------------------------------
+
 export type Prog = {
   commands: Cmd[]
 }
 
 // Commands
-export const Cmd = {
-  Exec: ({ fn, args }): CmdExec => ({ kind: 'Cmd.Exec', fn, args }),
-  Run: (expr: Expr): CmdRun => ({ kind: 'Cmd.Run', expr }),
-  Def: ({ variable, value }): CmdDef => ({ kind: 'Cmd.Def', variable, value }),
-  ChooseOne: (branches: ChoiceBranch[]): CmdChooseOne => ({
-    kind: 'Cmd.ChooseOne',
-    branches,
-  }),
-  ChooseAll: (branches: ChoiceBranch[]): CmdChooseAll => ({
-    kind: 'Cmd.ChooseAll',
-    branches,
-  }),
-  ForkFirst: (branches: ForkBranch[]): CmdForkFirst => ({
-    kind: 'Cmd.ForkFirst',
-    branches,
-  }),
-  ForkAll: (branches: ForkBranch[]): CmdForkAll => ({
-    kind: 'Cmd.ForkAll',
-    branches,
-  }),
-}
-
 export type Cmd =
   | CmdExec
   | CmdRun
@@ -36,74 +18,121 @@ export type Cmd =
   | CmdForkFirst
   | CmdForkAll
 
-interface CmdExec {
+export interface CmdExec {
   kind: 'Cmd.Exec'
   fn: string
   args: Expr[]
   loc?: Loc
 }
-interface CmdRun {
+export interface CmdRun {
   kind: 'Cmd.Run'
   expr: Expr
   loc?: Loc
 }
-interface CmdDef {
+export interface CmdDef {
   kind: 'Cmd.Def'
   variable: string
   value: Expr
   loc?: Loc
 }
-interface CmdChooseOne {
+export interface CmdChooseOne {
   kind: 'Cmd.ChooseOne'
   branches: ChoiceBranch[]
   loc?: Loc
 }
-interface CmdChooseAll {
+export interface CmdChooseAll {
   kind: 'Cmd.ChooseAll'
   branches: ChoiceBranch[]
   loc?: Loc
 }
-interface CmdForkFirst {
+export interface CmdForkFirst {
   kind: 'Cmd.ForkFirst'
   branches: ForkBranch[]
   loc?: Loc
 }
-interface CmdForkAll {
+export interface CmdForkAll {
   kind: 'Cmd.ForkAll'
   branches: ForkBranch[]
   loc?: Loc
 }
 
 // Expressions
-export const Expr = {
-  Var: (variable: string): ExprVar => ({ kind: 'Expr.Var', variable }),
-  Lit: (value: any): ExprLit => ({ kind: 'Expr.Lit', value }),
-  Cond: (branches: CondBranch[]): ExprCond => ({ kind: 'Expr.Cond', branches }),
-  Cmd: (cmd: Cmd): ExprCmd => ({ kind: 'Expr.Cmd', cmd }),
-  Cmds: (cmds: Cmd[]): ExprCmds => ({ kind: 'Expr.Cmds', cmds }),
-}
-
 export type Expr = ExprVar | ExprLit | ExprCond | ExprCmd | ExprCmds
 
-interface ExprVar {
+export interface ExprVar {
   kind: 'Expr.Var'
   variable: string
 }
-interface ExprLit {
+export interface ExprLit {
   kind: 'Expr.Lit'
   value: any
 }
-interface ExprCond {
+export interface ExprCond {
   kind: 'Expr.Cond'
   branches: CondBranch[]
 }
-interface ExprCmd {
+export interface ExprCmd {
   kind: 'Expr.Cmd'
   cmd: Cmd
 }
-interface ExprCmds {
+export interface ExprCmds {
   kind: 'Expr.Cmds'
   cmds: Cmd[]
+}
+
+// Branch types
+export interface ChoiceBranch {
+  kind: 'Branch.Choice'
+  label: string
+  cmdExpr: Expr
+}
+
+export interface ForkBranch {
+  kind: 'Branch.Fork'
+  cmdExpr: Expr
+  loc?: Loc
+}
+
+export interface CondBranch {
+  kind: 'Branch.Cond'
+  condition: Expr
+  result: Expr
+}
+
+// ----------------------------------------------------------------------------
+// AST Builders
+// ----------------------------------------------------------------------------
+
+// Commands
+export const Cmd = {
+  Exec: ({ fn, args }): Cmd => ({ kind: 'Cmd.Exec', fn, args }),
+  Run: (expr: Expr): Cmd => ({ kind: 'Cmd.Run', expr }),
+  Def: ({ variable, value }): Cmd => ({ kind: 'Cmd.Def', variable, value }),
+  ChooseOne: (branches: ChoiceBranch[]): Cmd => ({
+    kind: 'Cmd.ChooseOne',
+    branches,
+  }),
+  ChooseAll: (branches: ChoiceBranch[]): Cmd => ({
+    kind: 'Cmd.ChooseAll',
+    branches,
+  }),
+  ForkFirst: (branches: ForkBranch[]): Cmd => ({
+    kind: 'Cmd.ForkFirst',
+    branches,
+  }),
+  ForkAll: (branches: ForkBranch[]): Cmd => ({
+    kind: 'Cmd.ForkAll',
+    branches,
+  }),
+}
+
+// Expressions
+export const Expr = {
+  Var: (variable: string): Expr => ({ kind: 'Expr.Var', variable }),
+  Lit: (value: any): Expr => ({ kind: 'Expr.Lit', value }),
+  Cond: (branches: CondBranch[]): Expr => ({ kind: 'Expr.Cond', branches }),
+  Cmd: (cmd: Cmd): Expr => ({ kind: 'Expr.Cmd', cmd }),
+  Cmds: (cmds: Cmd[]): Expr => ({ kind: 'Expr.Cmds', cmds }),
 }
 
 // Branch types
@@ -119,22 +148,4 @@ export const Branch = {
     condition,
     result,
   }),
-}
-
-interface ChoiceBranch {
-  kind: 'Branch.Choice'
-  label: string
-  cmdExpr: Expr
-}
-
-interface ForkBranch {
-  kind: 'Branch.Fork'
-  cmdExpr: Expr
-  loc?: Loc
-}
-
-interface CondBranch {
-  kind: 'Branch.Cond'
-  condition: Expr
-  result: Expr
 }

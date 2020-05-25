@@ -9,6 +9,7 @@
     "test:watch": "ava --watch"
   },
   "devDependencies": {
+    "@types/parsimmon": "^1.10.2",
     "ava": "^3.8.2",
     "parcel": "^1.12.4",
     "ts-node": "^8.10.1",
@@ -17,6 +18,7 @@
   "browserslist": "last 2 Chrome versions",
   "dependencies": {
     "fluture": "^12.2.0",
+    "parsimmon": "^1.13.0",
     "xstream": "^11.11.0"
   },
   "ava": {
