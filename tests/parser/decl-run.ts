@@ -20,4 +20,4 @@ const program: Prog = {
   ],
 }
 
-test('decl-run', testParse, source, program)
+test('parse decl-run', testParse, source, program)

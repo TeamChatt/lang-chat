@@ -241,7 +241,9 @@ const language = (indent: number) =>
         tCase,
         space,
         ['condition', lang.expr],
+        space,
         tArrow,
+        space,
         ['result', lang.expr]
       )
     },

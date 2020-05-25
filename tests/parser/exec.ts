@@ -17,4 +17,4 @@ const program: Prog = {
   ],
 }
 
-test('exec', testParse, source, program)
+test('parse exec', testParse, source, program)

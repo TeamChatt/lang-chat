@@ -21,7 +21,7 @@ const printCmds = (cmds: Cmd[]) =>
 const printCmd = (cmd: Cmd): Doc<string> =>
   match(cmd, {
     'Cmd.Exec': ({ fn, args }) =>
-      seq([str('exec'), parens(list([fn, ...args].map(str)))]),
+      seq([str('exec'), parens(list([str(`"${fn}"`), ...args.map(str)]))]),
     'Cmd.Run': ({ expr }) => seq([str('run'), str(' '), printExpr(expr)]),
     'Cmd.Def': ({ variable, value }) =>
       seq([
@@ -63,8 +63,7 @@ const printBranch = (branch) =>
       seq([
         str('choice'),
         str(' '),
-        str(label),
-        str(':'),
+        str(`"${label}"`),
         str(' '),
         printExpr(cmdExpr),
       ]),
