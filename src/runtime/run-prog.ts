@@ -1,5 +1,5 @@
 import match from '../util/match'
-import { Prog, Cmd, Expr } from '../static/ast'
+import { Prog, Cmd, Expr, ChoiceBranch } from '../static/ast'
 import { Loc } from '../static/location'
 import { Maybe } from '../monad/maybe'
 import {
@@ -77,8 +77,6 @@ const runResult = (result: Result): Interpreter<any> =>
   )
 
 // Choices
-type ChoiceBranch = { label: string; cmds: Cmd[] } // TODO: import definitions instead of redeclaring?
-
 const filteredChoices = (
   choiceBranches: ChoiceBranch[]
 ): Interpreter<ChoiceBranch[]> =>

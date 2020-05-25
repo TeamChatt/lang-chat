@@ -102,7 +102,7 @@ const language = (indent: number) =>
         tExec,
         tOpenParen,
         ['fn', tStr],
-        ['args', tComma.then(space).then(lang.expr).many()], // TODO
+        ['args', tComma.then(space).then(lang.expr).many()],
         tCloseParen
       )
       const cmdRun = seqObj<CmdRun>(

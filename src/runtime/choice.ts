@@ -1,11 +1,9 @@
-import { Cmd } from '../static/ast'
+import { ChoiceBranch } from '../static/ast'
 
 export type Choice = {
   label: string
   index: number
 }
-
-type ChoiceBranch = { label: string; cmds: Cmd[] } // TODO: import definitions instead of redeclaring?
 
 export const fromBranch = (choices: ChoiceBranch[]) => (
   choiceBranch: ChoiceBranch
