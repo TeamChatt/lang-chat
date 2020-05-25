@@ -30,10 +30,10 @@ const interpretEscapes = (str: string) => {
 }
 
 const countSpaces = regexp(/[ ]*/).map((s) => s.length)
-const indentBy = (n) =>
+const indentBy = (n: number): Parser<number> =>
   countSpaces.chain((x) => (x === n ? of(n) : fail(`exactly ${n} spaces`)))
 
-export const indentLine = (indent) => <T>(parser: Parser<T>) =>
+export const indentLine = (indent: number) => <T>(parser: Parser<T>) =>
   indentBy(indent).then(parser)
 
 export const space = string(' ')
@@ -47,7 +47,7 @@ export const templateParser = <T>(
   ...keys: Parser<T>[]
 ): Parser<T[]> => {
   const sentinel = {}
-  const ignore = (str: string) => string(str).map(() => sentinel)
+  const ignore = (str: string) => string(str).result(sentinel)
   const arr = interleave(strings.map(ignore), keys)
   return seq<T | {}>(...arr).map(
     (results) => results.filter((r) => r !== sentinel) as T[]

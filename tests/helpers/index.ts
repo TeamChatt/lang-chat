@@ -2,6 +2,7 @@ import { Macro } from 'ava'
 import { Prog } from '../../src/static/ast'
 import tagLocation from '../../src/static/tag-location'
 import { run } from '../../src/runtime'
+import { parse } from '../../src/parser'
 
 export const testDriver = {
   exec: async (fn, args) => {
@@ -29,4 +30,13 @@ export const testProgram: Macro<[Prog, string[]]> = (
     const expected = expectedOutput.shift()
     t.is(output, expected)
   })
+}
+
+export const testParse: Macro<[string, Prog]> = (
+  t,
+  programSource: string,
+  expectedOutput: Prog
+) => {
+  const output = parse(programSource)
+  t.deepEqual(output, expectedOutput)
 }

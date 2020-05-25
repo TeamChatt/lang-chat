@@ -33,7 +33,19 @@ import {
 } from '../static/ast'
 import { indentLine, space, strLit } from './helpers'
 
-const reservedWords = []
+const reservedWords = [
+  'do',
+  'exec',
+  'let',
+  'choose',
+  'choose-all',
+  'choice',
+  'fork-first',
+  'fork-all',
+  'branch',
+  'cond',
+  'case',
+]
 
 // Tokens and reserved words
 const tLet = string('let')
@@ -78,7 +90,10 @@ type Language = {
 const language = (indent: number) =>
   createLanguage({
     program(lang: Language): Parser<Prog> {
-      return seqObj(['commands', lang.cmd.sepBy(newline)])
+      return seqObj([
+        'commands',
+        lang.cmd.thru(indentLine(indent)).sepBy(newline),
+      ])
     },
 
     cmd(lang: Language): Parser<Cmd> {
@@ -86,8 +101,8 @@ const language = (indent: number) =>
         ['kind', of('Cmd.Exec')],
         tExec,
         tOpenParen,
-        ['fn', of('function-name')], // TODO
-        ['args', of([])], // TODO
+        ['fn', tStr],
+        ['args', tComma.then(space).then(lang.expr).many()], // TODO
         tCloseParen
       )
       const cmdRun = seqObj<CmdRun>(
@@ -99,6 +114,7 @@ const language = (indent: number) =>
       const cmdDef = seqObj<CmdDef>(
         ['kind', of('Cmd.Def')],
         tLet,
+        space,
         ['variable', tVar],
         space,
         tEquals,
@@ -112,7 +128,7 @@ const language = (indent: number) =>
         [
           'branches',
           language(indent + 2)
-            .choiceBranch.thru(indentLine(indent))
+            .choiceBranch.thru(indentLine(indent + 2))
             .sepBy(newline),
         ]
       )
@@ -123,7 +139,7 @@ const language = (indent: number) =>
         [
           'branches',
           language(indent + 2)
-            .choiceBranch.thru(indentLine(indent))
+            .choiceBranch.thru(indentLine(indent + 2))
             .sepBy(newline),
         ]
       )
@@ -134,7 +150,7 @@ const language = (indent: number) =>
         [
           'branches',
           language(indent + 2)
-            .forkBranch.thru(indentLine(indent))
+            .forkBranch.thru(indentLine(indent + 2))
             .sepBy(newline),
         ]
       )
@@ -145,7 +161,7 @@ const language = (indent: number) =>
         [
           'branches',
           language(indent + 2)
-            .forkBranch.thru(indentLine(indent))
+            .forkBranch.thru(indentLine(indent + 2))
             .sepBy(newline),
         ]
       )
@@ -177,7 +193,7 @@ const language = (indent: number) =>
         [
           'branches',
           language(indent + 2)
-            .condBranch.thru(indentLine(indent))
+            .condBranch.thru(indentLine(indent + 2))
             .sepBy(newline),
         ]
       )
@@ -192,12 +208,12 @@ const language = (indent: number) =>
         [
           'cmds',
           language(indent + 2)
-            .cmd.thru(indentLine(indent))
+            .cmd.thru(indentLine(indent + 2))
             .sepBy(newline),
         ]
       )
 
-      return alt(exprVar, exprLit, exprCond, exprCmd, exprCmds)
+      return alt<Expr>(exprVar, exprLit, exprCond, exprCmd, exprCmds)
     },
 
     //Branches
