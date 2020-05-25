@@ -37,6 +37,10 @@ const runAction = (action: Action): Runtime<any> =>
       Runtime.fromEffect(async (driver: Driver) => {
         return driver.exec(fn, args)
       }),
+    'Action.Dialogue': ({ character, line }) =>
+      Runtime.fromEffect(async (driver: Driver) => {
+        return driver.dialogue(character, line)
+      }),
     'Action.FilterChoices': ({ branches }) =>
       Runtime.visitedBranches().map((visited) =>
         diff((x: any, y: any) => x.index === y.index)(branches, visited)

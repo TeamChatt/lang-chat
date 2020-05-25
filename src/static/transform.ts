@@ -10,6 +10,7 @@ type CmdVisitor = {
   'Cmd.Exec'?: (cmd: any) => Cmd
   'Cmd.Run'?: (cmd: any) => Cmd
   'Cmd.Def'?: (cmd: any) => Cmd
+  'Cmd.Dialogue'?: (cmd: any) => Cmd
   'Cmd.ChooseOne'?: (cmd: any) => Cmd
   'Cmd.ChooseAll'?: (cmd: any) => Cmd
   'Cmd.ForkFirst'?: (cmd: any) => Cmd
@@ -43,6 +44,7 @@ const visitCmd = (transformer: Transformer): CmdVisitor => ({
       variable,
       value: transformer.Expr(value),
     }),
+  'Cmd.Dialogue': ({ character, line }) => Cmd.Dialogue({ character, line }),
   'Cmd.ChooseOne': ({ branches }) =>
     Cmd.ChooseOne(branches.map(transformer.Branch)),
   'Cmd.ChooseAll': ({ branches }) =>

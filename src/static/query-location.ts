@@ -35,6 +35,7 @@ const queryCmdInner = (query: Loc) => (cmd: Cmd): Maybe<Cmd[]> =>
     'Cmd.Exec': () => Maybe.nothing<Cmd[]>(),
     'Cmd.Run': ({ expr }) => queryExpr(query)(expr),
     'Cmd.Def': ({ value }) => queryExpr(query)(value),
+    'Cmd.Dialogue': () => Maybe.nothing<Cmd[]>(),
     'Cmd.ChooseOne': ({ branches }) => queryBranches(query)(branches),
     'Cmd.ChooseAll': ({ branches }) => queryBranches(query)(branches),
     'Cmd.ForkFirst': ({ branches }) => queryBranches(query)(branches),

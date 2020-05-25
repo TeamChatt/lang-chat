@@ -10,6 +10,7 @@ import {
   defineVar,
   lookupVar,
   exec,
+  dialogue,
   forkFirst,
   forkAll,
   choice,
@@ -40,6 +41,7 @@ const runCmdInner = (cmd: Cmd): Interpreter<any> =>
     'Cmd.Run': ({ expr }) => evalExpr(expr).flatMap(runResult),
     'Cmd.Def': ({ variable, value }) =>
       evalExpr(value).flatMap((result) => defineVar(variable, result)),
+    'Cmd.Dialogue': ({ character, line }) => dialogue({ character, line }),
     'Cmd.ChooseOne': ({ branches }) => runChooseOne(branches),
     'Cmd.ChooseAll': ({ branches }) => runChooseAll(branches),
     'Cmd.ForkFirst': ({ branches }) =>

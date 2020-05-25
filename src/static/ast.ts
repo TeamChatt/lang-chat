@@ -13,6 +13,7 @@ export type Cmd =
   | CmdExec
   | CmdRun
   | CmdDef
+  | CmdDialogue
   | CmdChooseOne
   | CmdChooseAll
   | CmdForkFirst
@@ -33,6 +34,12 @@ export interface CmdDef {
   kind: 'Cmd.Def'
   variable: string
   value: Expr
+  loc?: Loc
+}
+export interface CmdDialogue {
+  kind: 'Cmd.Dialogue'
+  character: string
+  line: string
   loc?: Loc
 }
 export interface CmdChooseOne {
@@ -117,6 +124,11 @@ export interface CondBranch {
 export const Cmd = {
   Exec: ({ fn, args }): Cmd => ({ kind: 'Cmd.Exec', fn, args }),
   Run: (expr: Expr): Cmd => ({ kind: 'Cmd.Run', expr }),
+  Dialogue: ({ character, line }): Cmd => ({
+    kind: 'Cmd.Dialogue',
+    character,
+    line,
+  }),
   Def: ({ variable, value }): Cmd => ({ kind: 'Cmd.Def', variable, value }),
   ChooseOne: (branches: ChoiceBranch[]): Cmd => ({
     kind: 'Cmd.ChooseOne',

@@ -8,6 +8,9 @@ export const testDriver = {
   exec: async (fn, args) => {
     return fn
   },
+  dialogue: async (character, line) => {
+    return line
+  },
   branch: async (branches) => {
     return branches[0]
   },

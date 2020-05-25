@@ -28,6 +28,8 @@ const tagLocation = (program) => {
         withLocation(
           transducer.Expr(value).map((value) => Cmd.Def({ variable, value }))
         ),
+      'Cmd.Dialogue': ({ character, line }) =>
+        withLocation(pure(Cmd.Dialogue({ character, line }))),
       'Cmd.ChooseOne': ({ branches }) =>
         //@ts-ignore
         withLocation(

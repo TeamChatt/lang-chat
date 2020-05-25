@@ -11,6 +11,7 @@ type CmdVisitor = {
   'Cmd.Exec'?: (cmd: any) => ASTContext<Cmd>
   'Cmd.Run'?: (cmd: any) => ASTContext<Cmd>
   'Cmd.Def'?: (cmd: any) => ASTContext<Cmd>
+  'Cmd.Dialogue'?: (cmd: any) => ASTContext<Cmd>
   'Cmd.ChooseOne'?: (cmd: any) => ASTContext<Cmd>
   'Cmd.ChooseAll'?: (cmd: any) => ASTContext<Cmd>
   'Cmd.ForkFirst'?: (cmd: any) => ASTContext<Cmd>
@@ -47,6 +48,8 @@ const visitCmd = (transducer: Transducer): CmdVisitor => ({
         value,
       })
     ),
+  'Cmd.Dialogue': ({ character, line }) =>
+    pure(Cmd.Dialogue({ character, line })),
   'Cmd.ChooseOne': ({ branches }) =>
     withArray('branches', branches.map(transducer.Branch)).map((branches) =>
       //@ts-ignore
