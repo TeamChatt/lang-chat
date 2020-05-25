@@ -34,7 +34,10 @@ const printCmd = (cmd: Cmd): Doc<string> =>
         printExpr(value),
       ]),
     'Cmd.Dialogue': ({ character, line }) =>
-      seq([str(character), indent(concat(newline, str(line)))]),
+      seq([
+        str(`@${character}`),
+        indent(concat(newline, seq([str('>'), str(' '), str(line)]))),
+      ]),
     'Cmd.ChooseOne': ({ branches }) =>
       seq([str('choose-one'), printBranches(branches)]),
     'Cmd.ChooseAll': ({ branches }) =>
