@@ -1,36 +1,38 @@
 import {
-  string,
+  alt,
+  createLanguage,
+  end,
+  fail,
+  newline,
+  notFollowedBy,
+  of,
+  Parser,
   regexp,
   seq,
   seqObj,
-  newline,
-  createLanguage,
-  alt,
-  of,
-  Parser,
-  end,
-  fail,
+  string,
 } from 'parsimmon'
 import {
-  Prog,
-  Cmd,
-  Expr,
-  CmdDef,
-  CmdChooseOne,
-  CmdChooseAll,
-  CmdForkFirst,
-  CmdForkAll,
   ChoiceBranch,
-  ForkBranch,
-  CondBranch,
+  Cmd,
+  CmdChooseAll,
+  CmdChooseOne,
+  CmdDef,
+  CmdDialogue,
   CmdExec,
+  CmdForkAll,
+  CmdForkFirst,
   CmdRun,
-  ExprVar,
-  ExprCond,
+  CondBranch,
+  Expr,
   ExprCmd,
   ExprCmds,
-  ExprLit,
+  ExprCond,
   ExprImport,
+  ExprLit,
+  ExprVar,
+  ForkBranch,
+  Prog,
 } from '../static/ast'
 import { indentLine, space, strLit } from './helpers'
 
@@ -64,12 +66,15 @@ const tImport = string('import')
 const tLet = string('let')
 const tRun = string('run')
 // Symbol Tokens
+const tAt = string('@')
 const tArrow = string('->')
+const tCaret = string('>')
 const tCloseParen = string(')')
 const tComma = string(',')
 const tEquals = string('=')
 const tOpenParen = string('(')
 // Variables and strings
+const tCharacterName = tAt.then(regexp(/.+/)).desc('a character name')
 const tVar = regexp(/[a-zA-Z][a-zA-Z0-9_-]*/)
   .chain((name) =>
     reservedWords.includes(name)
@@ -109,6 +114,12 @@ const language = (indent: number) =>
         ['fn', tStr],
         ['args', tComma.then(space).then(lang.expr).many()],
         tCloseParen
+      )
+      const cmdDialogue = seqObj<CmdDialogue>(
+        ['kind', of('Cmd.Dialogue')],
+        ['character', tCharacterName],
+        newline,
+        ['line', language(indent + 2).dialogueLine.thru(indentLine(indent + 2))]
       )
       const cmdRun = seqObj<CmdRun>(
         ['kind', of('Cmd.Run')],
@@ -175,6 +186,7 @@ const language = (indent: number) =>
         cmdExec,
         cmdRun,
         cmdDef,
+        cmdDialogue,
         cmdChooseOne,
         cmdChooseAll,
         cmdForkFirst,
@@ -265,6 +277,21 @@ const language = (indent: number) =>
         space,
         ['result', lang.expr]
       )
+    },
+
+    // Dialogue
+    dialogueLine(lang): Parser<string> {
+      const restOfLine = regexp(/.*/)
+      const firstLine = tCaret.then(space).then(restOfLine)
+      const nextLine = notFollowedBy(tCaret).then(restOfLine)
+      return firstLine
+        .chain((first) =>
+          nextLine
+            .thru(indentLine(indent))
+            .many()
+            .map((next) => [first, ...next])
+        )
+        .tieWith('\n')
     },
   })
 

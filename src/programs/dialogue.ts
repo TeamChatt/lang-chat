@@ -2,11 +2,14 @@ import { Prog, Cmd } from '../static/ast'
 
 export const program: Prog = {
   commands: [
-    Cmd.Dialogue({ character: 'A', line: 'knock knock' }),
-    Cmd.Dialogue({ character: 'B', line: "who's there?" }),
-    Cmd.Dialogue({ character: 'A', line: 'lettuce' }),
-    Cmd.Dialogue({ character: 'B', line: 'lettuce who?' }),
-    Cmd.Dialogue({ character: 'A', line: "lettuce in, it's cold out here" }),
+    Cmd.Dialogue({ character: 'Alice', line: 'knock knock' }),
+    Cmd.Dialogue({ character: 'Bob', line: "who's there?" }),
+    Cmd.Dialogue({ character: 'Alice', line: 'lettuce' }),
+    Cmd.Dialogue({ character: 'Bob', line: 'lettuce who?' }),
+    Cmd.Dialogue({
+      character: 'Alice',
+      line: "lettuce in, it's cold out here",
+    }),
   ],
 }
 
