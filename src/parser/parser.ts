@@ -36,6 +36,9 @@ import {
 } from '../static/ast'
 import { indentLine, space, strLit } from './helpers'
 
+const flatten = <T>(arr: T[][]): T[] =>
+  arr.length === 0 ? [] : [...arr[0], ...flatten(arr.slice(1))]
+
 const reservedWords = [
   'branch',
   'case',
@@ -90,20 +93,19 @@ const comment = seq(regexp(/[ ]*/), string('//'), regexp(/.*/), newline)
 type Language = {
   program: Parser<Prog>
   cmd: Parser<Cmd>
+  cmds: Parser<Cmd[]>
   expr: Parser<Expr>
   choiceBranch: Parser<any>
   forkBranch: Parser<any>
   condBranch: Parser<any>
+  dialogueLine: Parser<string>
 }
 
 //Language
 const language = (indent: number) =>
   createLanguage({
     program(lang: Language): Parser<Prog> {
-      return seqObj([
-        'commands',
-        lang.cmd.thru(indentLine(indent)).sepBy(newline),
-      ])
+      return seqObj(['commands', lang.cmds])
     },
 
     cmd(lang: Language): Parser<Cmd> {
@@ -194,6 +196,26 @@ const language = (indent: number) =>
       )
     },
 
+    cmds(lang: Language): Parser<Cmd[]> {
+      const cmdsDialogue = tCharacterName
+        .thru(indentLine(indent))
+        .skip(newline)
+        .chain((character) =>
+          seqObj<CmdDialogue>(
+            ['kind', of('Cmd.Dialogue')],
+            ['character', of(character)],
+            ['line', language(indent + 2).dialogueLine]
+          )
+            .thru(indentLine(indent + 2))
+            .sepBy(newline)
+        )
+      const cmdsSingleton = lang.cmd
+        .thru(indentLine(indent))
+        .map((cmd) => [cmd])
+
+      return alt(cmdsDialogue, cmdsSingleton).sepBy(newline).map(flatten)
+    },
+
     expr(lang: Language): Parser<Expr> {
       const exprImport = seqObj<ExprImport>(
         ['kind', of('Expr.Import')],
@@ -229,12 +251,7 @@ const language = (indent: number) =>
         ['kind', of('Expr.Cmds')],
         tDo,
         newline,
-        [
-          'cmds',
-          language(indent + 2)
-            .cmd.thru(indentLine(indent + 2))
-            .sepBy(newline),
-        ]
+        ['cmds', language(indent + 2).cmds]
       )
 
       return alt<Expr>(

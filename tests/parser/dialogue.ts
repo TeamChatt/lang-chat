@@ -1,6 +1,6 @@
 import test from 'ava'
 import { testParse } from '../helpers'
-import { Prog, Cmd, Expr } from '../../src/static/ast'
+import { Prog, Cmd } from '../../src/static/ast'
 
 const source = `@Alice
   > knock knock
