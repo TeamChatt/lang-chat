@@ -16,6 +16,7 @@ type CmdVisitor = {
   'Cmd.ForkAll'?: (cmd: any) => Cmd
 }
 type ExprVisitor = {
+  'Expr.Import'?: (expr: any) => Expr
   'Expr.Var'?: (expr: any) => Expr
   'Expr.Lit'?: (expr: any) => Expr
   'Expr.Cond'?: (expr: any) => Expr
@@ -54,6 +55,7 @@ const visitCmd = (transformer: Transformer): CmdVisitor => ({
 
 // Expressions
 const visitExpr = (transformer: Transformer): ExprVisitor => ({
+  'Expr.Import': ({ path }) => Expr.Import(path),
   'Expr.Var': ({ variable }) => Expr.Var(variable),
   'Expr.Lit': ({ value }) => Expr.Lit(value),
   'Expr.Cond': ({ branches }) => Expr.Cond(branches.map(transformer.Branch)),

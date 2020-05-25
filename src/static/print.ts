@@ -46,6 +46,8 @@ const printCmd = (cmd: Cmd): Doc<string> =>
 // Expressions
 const printExpr = (expr: Expr) =>
   match(expr, {
+    'Expr.Import': ({ path }) =>
+      seq([str('import'), str('('), str(`"${path}"`), str(')')]),
     'Expr.Var': ({ variable }) => str(variable),
     'Expr.Lit': ({ value }) => str(`${value}`),
     'Expr.Cond': ({ branches }) => seq([str('cond'), printBranches(branches)]),

@@ -30,41 +30,46 @@ import {
   ExprCmd,
   ExprCmds,
   ExprLit,
+  ExprImport,
 } from '../static/ast'
 import { indentLine, space, strLit } from './helpers'
 
 const reservedWords = [
+  'branch',
+  'case',
+  'choice',
+  'choose-all',
+  'choose',
+  'cond',
   'do',
   'exec',
-  'let',
-  'choose',
-  'choose-all',
-  'choice',
-  'fork-first',
   'fork-all',
-  'branch',
-  'cond',
-  'case',
+  'fork-first',
+  'import',
+  'let',
 ]
 
-// Tokens and reserved words
-const tLet = string('let')
-const tEquals = string('=')
+// Reserved words
+const tCase = string('case')
+const tChoice = string('choice')
 const tChoose = string('choose')
 const tChooseAll = string('choose-all')
-const tChoice = string('choice')
-const tForkFirst = string('fork-first')
+const tCond = string('cond')
+const tDo = string('do')
+const tExec = string('exec')
 const tForkAll = string('fork-all')
 const tForkBranch = string('branch')
-const tCond = string('cond')
-const tCase = string('case')
-const tArrow = string('->')
-const tDo = string('do')
+const tForkFirst = string('fork-first')
+const tImport = string('import')
+const tLet = string('let')
 const tRun = string('run')
-const tExec = string('exec')
-const tOpenParen = string('(')
+// Symbol Tokens
+const tArrow = string('->')
 const tCloseParen = string(')')
 const tComma = string(',')
+const tEquals = string('=')
+const tOpenParen = string('(')
+// Variables and strings
 const tVar = regexp(/[a-zA-Z][a-zA-Z0-9_-]*/)
   .chain((name) =>
     reservedWords.includes(name)
@@ -178,6 +183,13 @@ const language = (indent: number) =>
     },
 
     expr(lang: Language): Parser<Expr> {
+      const exprImport = seqObj<ExprImport>(
+        ['kind', of('Expr.Import')],
+        tImport,
+        tOpenParen,
+        ['path', tStr],
+        tCloseParen
+      )
       const exprVar = seqObj<ExprVar>(
         ['kind', of('Expr.Var')],
         ['variable', tVar]
@@ -213,7 +225,14 @@ const language = (indent: number) =>
         ]
       )
 
-      return alt<Expr>(exprVar, exprLit, exprCond, exprCmd, exprCmds)
+      return alt<Expr>(
+        exprImport,
+        exprVar,
+        exprLit,
+        exprCond,
+        exprCmd,
+        exprCmds
+      )
     },
 
     //Branches
