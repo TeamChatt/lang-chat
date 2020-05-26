@@ -1,5 +1,5 @@
 import match from '../util/match'
-import { Maybe } from '../monad/maybe'
+import { Maybe } from '../data/maybe'
 import { Loc, top, equals } from '../static/location'
 import {
   BindingContext,

@@ -1,4 +1,4 @@
-import { Maybe } from '../monad/maybe'
+import { Maybe } from '../data/maybe'
 import { Result } from './interpreter'
 
 export interface BindingContext {

@@ -1,7 +1,7 @@
 import match from '../util/match'
 import { Prog, Cmd, Expr, ChoiceBranch } from '../static/ast'
 import { Loc } from '../static/location'
-import { Maybe } from '../monad/maybe'
+import { Maybe } from '../data/maybe'
 import {
   Result,
   Interpreter,

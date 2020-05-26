@@ -1,9 +1,9 @@
 export abstract class Maybe<T> {
   static just<T>(value: T): Maybe<T> {
-    return new Just<T>(value)
+    return new Just(value)
   }
   static nothing<T>(): Maybe<T> {
-    return new Nothing() as Maybe<T>
+    return new Nothing<T>()
   }
   static fromNullable<T>(t?: T): Maybe<T> {
     return t === null || t === undefined ? Maybe.nothing() : Maybe.just(t)
@@ -35,7 +35,7 @@ class Just<T> extends Maybe<T> {
     const { value } = (this as unknown) as Just<Maybe<S>>
     return value
   }
-  maybe<R>(fromJust: (t: T) => R, defaultValue: () => R): R {
+  maybe<R>(fromJust: (t: T) => R, fromNothnig: () => R): R {
     const { value } = this
     return fromJust(value)
   }
@@ -51,8 +51,8 @@ class Nothing<T> extends Maybe<T> {
   flatten<S>(): Maybe<S> {
     return Maybe.nothing()
   }
-  maybe<R>(fromJust: (t: T) => R, defaultValue: () => R): R {
-    return defaultValue()
+  maybe<R>(fromJust: (t: T) => R, fromNothing: () => R): R {
+    return fromNothing()
   }
   alt(maybe: Maybe<T>): Maybe<T> {
     return maybe

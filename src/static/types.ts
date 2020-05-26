@@ -1,4 +1,4 @@
-import { Maybe } from '../monad/maybe'
+import { Maybe } from '../data/maybe'
 
 export type Type = 'Type.String' | 'Type.Cmd'
 export const Type = {

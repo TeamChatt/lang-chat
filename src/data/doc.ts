@@ -1,4 +1,4 @@
-const match = (obj, cases) => cases[obj.kind](obj)
+import match from '../util/match'
 
 export const Doc = {
   Empty: { kind: 'Doc.Empty' },
@@ -24,7 +24,7 @@ interface DocLine<T> {
 
 export function indent<T>(doc: Doc<T>): Doc<T> {
   return match(doc, {
-    'Doc.Empty': () => Doc.Empty,
+    'Doc.Empty': () => Doc.Empty as Doc<T>,
     'Doc.Text': ({ text, doc }) =>
       Doc.Text({
         text,

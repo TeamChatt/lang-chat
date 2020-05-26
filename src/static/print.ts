@@ -1,5 +1,5 @@
 import match from '../util/match'
-import { Maybe } from '../monad/maybe'
+import { Maybe } from '../data/maybe'
 import {
   indent,
   layout,
@@ -9,7 +9,7 @@ import {
   intersperse,
   newline,
   Doc,
-} from '../doc'
+} from '../data/doc'
 import { Prog, Cmd, Expr } from './ast'
 
 const partition = <T>(arr: T[], f: (t: T) => boolean): [T[], T[]] => {

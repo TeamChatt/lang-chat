@@ -1,5 +1,5 @@
 import { Loc } from '../static/location'
-import { Maybe } from '../monad/maybe'
+import { Maybe } from '../data/maybe'
 import { Driver } from './driver'
 import {
   RuntimeContext,

@@ -1,6 +1,6 @@
 import { Stream } from 'xstream'
 import Defer from '../util/defer'
-import { Maybe } from '../monad/maybe'
+import { Maybe } from '../data/maybe'
 import { Loc } from '../static/location'
 import { Choice } from './choice'
 import { Driver } from './driver'
