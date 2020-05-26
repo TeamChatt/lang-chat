@@ -1,4 +1,5 @@
 import match from '../util/match'
+import { Maybe } from '../monad/maybe'
 import {
   indent,
   layout,
@@ -11,12 +12,70 @@ import {
 } from '../doc'
 import { Prog, Cmd, Expr } from './ast'
 
+const partition = <T>(arr: T[], f: (t: T) => boolean): [T[], T[]] => {
+  const index = arr.findIndex((x) => !f(x))
+  return index === -1 ? [arr, []] : [arr.slice(0, index), arr.slice(index)]
+}
+
 const parens = (doc: Doc<string>) => seq([str('('), doc, str(')')])
 const list = (docs: Doc<string>[]) => intersperse(docs, str(','))
+const lines = (docs: Doc<string>[]) => intersperse(docs, newline as Doc<string>)
+const indentBlock = (doc: Doc<string>): Doc<string> =>
+  indent(concat(newline as Doc<string>, doc))
+
+// Dialogue
+const printLine = (line: string): Doc<string> =>
+  seq([str('>'), str(' '), str(line)])
+
+const printLines = (dialogueLines: string[]): Doc<string> =>
+  lines(dialogueLines.map(printLine))
+
+const getCharacter = (cmd: Cmd) =>
+  match(cmd, {
+    'Cmd.Dialogue': ({ character }) => Maybe.just(character),
+    'Cmd.Exec': () => Maybe.nothing(),
+    'Cmd.Run': () => Maybe.nothing(),
+    'Cmd.Def': () => Maybe.nothing(),
+    'Cmd.ChooseOne': () => Maybe.nothing(),
+    'Cmd.ChooseAll': () => Maybe.nothing(),
+    'Cmd.ForkFirst': () => Maybe.nothing(),
+    'Cmd.ForkAll': () => Maybe.nothing(),
+  })
+const getLine = (cmd: Cmd) =>
+  match(cmd, {
+    'Cmd.Dialogue': ({ line }) => line,
+  })
+const matchesCharacter = (character: string) => (cmd: Cmd) =>
+  getCharacter(cmd)
+    .map((char) => char === character)
+    .maybe(
+      (t) => t,
+      () => false
+    )
 
 // Commands
-const printCmds = (cmds: Cmd[]) =>
-  indent(concat(newline, intersperse(cmds.map(printCmd), newline)))
+const printCmds = (cmds: Cmd[]): Doc<string> => {
+  const coalesce = (cmds: Cmd[]): Doc<string>[] =>
+    cmds.length === 0 ? [] : coalesceWith(cmds[0], cmds.slice(1))
+
+  const coalesceWith = (cmd: Cmd, cmds: Cmd[]) =>
+    getCharacter(cmd).maybe(
+      (character) => {
+        const [match, rest] = partition(
+          [cmd, ...cmds],
+          matchesCharacter(character)
+        )
+        const dialogue = seq([
+          str(`@${character}`),
+          indentBlock(printLines(match.map(getLine))),
+        ])
+        return [dialogue, ...coalesce(rest)]
+      },
+      () => [printCmd(cmd), ...coalesce(cmds)]
+    )
+
+  return lines(coalesce(cmds))
+}
 
 const printCmd = (cmd: Cmd): Doc<string> =>
   match(cmd, {
@@ -34,37 +93,35 @@ const printCmd = (cmd: Cmd): Doc<string> =>
         printExpr(value),
       ]),
     'Cmd.Dialogue': ({ character, line }) =>
-      seq([
-        str(`@${character}`),
-        indent(concat(newline, seq([str('>'), str(' '), str(line)]))),
-      ]),
+      seq([str(`@${character}`), indentBlock(printLine(line))]),
     'Cmd.ChooseOne': ({ branches }) =>
-      seq([str('choose-one'), printBranches(branches)]),
+      seq([str('choose-one'), indentBlock(printBranches(branches))]),
     'Cmd.ChooseAll': ({ branches }) =>
-      seq([str('choose-all'), printBranches(branches)]),
+      seq([str('choose-all'), indentBlock(printBranches(branches))]),
     'Cmd.ForkFirst': ({ branches }) =>
-      seq([str('fork-first'), printBranches(branches)]),
+      seq([str('fork-first'), indentBlock(printBranches(branches))]),
     'Cmd.ForkAll': ({ branches }) =>
-      seq([str('fork-all'), printBranches(branches)]),
+      seq([str('fork-all'), indentBlock(printBranches(branches))]),
   })
 
 // Expressions
-const printExpr = (expr: Expr) =>
+const printExpr = (expr: Expr): Doc<string> =>
   match(expr, {
     'Expr.Import': ({ path }) =>
       seq([str('import'), str('('), str(`"${path}"`), str(')')]),
     'Expr.Var': ({ variable }) => str(variable),
     'Expr.Lit': ({ value }) => str(`${value}`),
-    'Expr.Cond': ({ branches }) => seq([str('cond'), printBranches(branches)]),
+    'Expr.Cond': ({ branches }) =>
+      seq([str('cond'), indentBlock(printBranches(branches))]),
     'Expr.Cmd': ({ cmd }) => printCmd(cmd),
-    'Expr.Cmds': ({ cmds }) => seq([str('do'), printCmds(cmds)]),
+    'Expr.Cmds': ({ cmds }) => seq([str('do'), indentBlock(printCmds(cmds))]),
   })
 
 // Branch types
-const printBranches = (branches) =>
-  indent(concat(newline, intersperse(branches.map(printBranch), newline)))
+const printBranches = (branches): Doc<string> =>
+  lines(branches.map(printBranch))
 
-const printBranch = (branch) =>
+const printBranch = (branch): Doc<string> =>
   match(branch, {
     'Branch.Choice': ({ label, cmdExpr }) =>
       seq([
@@ -89,8 +146,7 @@ const printBranch = (branch) =>
   })
 
 // Program
-const printProg = ({ commands }: Prog): Doc<string> =>
-  intersperse(commands.map(printCmd), newline as Doc<string>)
+const printProg = ({ commands }: Prog): Doc<string> => printCmds(commands)
 
 const printProgram = (program: Prog): string => layout(printProg(program))
 

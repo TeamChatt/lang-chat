@@ -1,4 +1,4 @@
-import { program } from './programs/dialogue'
+import { program } from './programs/dialogue-multi'
 import print from './static/print'
 import tagLocation from './static/tag-location'
 import { run, resume, RuntimeContext } from './runtime'
