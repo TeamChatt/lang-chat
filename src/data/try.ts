@@ -16,6 +16,7 @@ export abstract class Try<T> {
   abstract map<S>(f: (t: T) => S): Try<S>
   abstract flatten<S>(): Try<S>
   abstract alt(maybe: Try<T>): Try<T>
+  abstract coerce(): T
 
   flatMap<S>(f: (t: T) => Try<S>): Try<S> {
     return this.map(f).flatten()
@@ -41,6 +42,9 @@ class Success<T> extends Try<T> {
   alt(attempt: Try<T>): Try<T> {
     return this
   }
+  coerce(): T {
+    return this.value
+  }
 }
 
 class Fail<T> extends Try<T> {
@@ -59,5 +63,8 @@ class Fail<T> extends Try<T> {
   }
   alt(attempt: Try<T>): Try<T> {
     return attempt
+  }
+  coerce(): T {
+    throw this.error
   }
 }

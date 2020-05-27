@@ -18,8 +18,8 @@ const unify = (t1: Type, t2: Type): Maybe<Type> =>
 
 export const unifyTypes = (types: Type[]): Maybe<Type> =>
   types.length === 0
-    ? types.reduce(
+    ? Maybe.nothing()
+    : types.reduce(
         (acc, t) => acc.flatMap((t2) => unify(t, t2)),
         Maybe.just(types[0])
       )
-    : Maybe.nothing()

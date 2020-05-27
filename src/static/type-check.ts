@@ -52,14 +52,12 @@ const synthExpr = (expr: Expr): TypeChecker<Type> =>
   })
 
 const synthBranches = (branches: any[]): TypeChecker<Type> =>
-  sequenceM(branches.map(synthBranch))
-    .map(unifyTypes)
-    .flatMap((maybeT) =>
-      maybeT.maybe(
-        (t) => pure(t),
-        () => fail("Couldn't unify types")
-      )
+  sequenceM(branches.map(synthBranch)).flatMap((types) =>
+    unifyTypes(types).maybe(
+      (t) => pure(t),
+      () => fail(`Couldn't unify types: ${JSON.stringify(types, null, 2)}`)
     )
+  )
 
 const synthBranch = (branch): TypeChecker<Type> =>
   match(branch, {
@@ -77,17 +75,21 @@ const synthBranch = (branch): TypeChecker<Type> =>
 // Type Checking
 //-----------------------------------------------------------------------------
 
-const checkCmd = (type: Type) => (cmd: Cmd): TypeChecker<undefined> =>
+const checkCmd = (type: Type) => (cmd: Cmd): TypeChecker<Cmd> =>
   synthCmd(cmd).flatMap((t) =>
-    t === type ? pure(undefined) : fail("Types don't match")
+    t === type ? pure(cmd) : fail("Types don't match")
   )
 
-const checkExpr = (type: Type) => (expr: Expr): TypeChecker<undefined> =>
+const checkExpr = (type: Type) => (expr: Expr): TypeChecker<Expr> =>
   synthExpr(expr).flatMap((t) =>
-    t === type ? pure(undefined) : fail("Types don't match")
+    t === type ? pure(expr) : fail("Types don't match")
   )
 
-const checkProg = ({ commands }: Prog): TypeChecker<undefined> =>
-  sequenceM(commands.map(checkCmd(Type.Cmd))).map(() => undefined)
+const checkProg = ({ commands }: Prog): TypeChecker<Prog> =>
+  sequenceM(commands.map(checkCmd(Type.Cmd))).map((commands) => ({ commands }))
 
-export const typeCheck = (prog) => checkProg(prog).run(empty)
+export const typeCheck = (prog: Prog): Prog =>
+  checkProg(prog)
+    .run(empty)
+    .map(([ctx, prog]) => prog)
+    .coerce()
