@@ -48,10 +48,12 @@ const reservedWords = [
   'cond',
   'do',
   'exec',
+  'false',
   'fork-all',
   'fork-first',
   'import',
   'let',
+  'true',
 ]
 
 // Reserved words
@@ -62,12 +64,14 @@ const tChooseAll = string('choose-all')
 const tCond = string('cond')
 const tDo = string('do')
 const tExec = string('exec')
+const tFalse = string('false')
 const tForkAll = string('fork-all')
 const tForkBranch = string('branch')
 const tForkFirst = string('fork-first')
 const tImport = string('import')
 const tLet = string('let')
 const tRun = string('run')
+const tTrue = string('true')
 // Symbol Tokens
 const tAt = string('@')
 const tArrow = string('->')
@@ -86,6 +90,10 @@ const tVar = regexp(/[a-zA-Z][a-zA-Z0-9_-]*/)
   )
   .desc('a variable')
 const tStr = strLit
+const tNum = regexp(/[0-9]+/)
+  .map(Number)
+  .desc('a number')
+const tBool = alt(tTrue.result(true), tFalse.result(false))
 
 // Comments
 const comment = seq(regexp(/[ ]*/), string('//'), regexp(/.*/), newline)
@@ -99,6 +107,7 @@ type Language = {
   forkBranch: Parser<any>
   condBranch: Parser<any>
   dialogueLine: Parser<string>
+  literal: Parser<string | number | boolean>
 }
 
 //Language
@@ -230,7 +239,7 @@ const language = (indent: number) =>
       )
       const exprLit = seqObj<ExprLit>(
         ['kind', of('Expr.Lit')],
-        ['value', tStr] // prettier-ignore
+        ['value', lang.literal] // prettier-ignore
       )
       const exprCond = seqObj<ExprCond>(
         ['kind', of('Expr.Cond')],
@@ -309,6 +318,11 @@ const language = (indent: number) =>
             .map((next) => [first, ...next])
         )
         .tieWith('\n')
+    },
+
+    // Literals
+    literal(lang): Parser<string | number | boolean> {
+      return alt(tStr, tNum, tBool)
     },
   })
 

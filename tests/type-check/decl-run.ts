@@ -32,7 +32,9 @@ const programError1: Prog = {
 }
 
 test('check reject decl-run 1', (t) => {
-  t.throws(() => typeCheck(programError1), { message: "Types don't match" })
+  t.throws(() => typeCheck(programError1), {
+    message: 'Expected type Type.Cmd, but found Type.String',
+  })
 })
 
 const programError2: Prog = {
@@ -45,10 +47,12 @@ const programError2: Prog = {
       ]),
     }),
     // Attempt to run variable not in scope
-    Cmd.Run(Expr.Var('not-start')),
+    Cmd.Run(Expr.Var('strat')),
   ],
 }
 
 test('check reject decl-run 2', (t) => {
-  t.throws(() => typeCheck(programError2), { message: 'Variable not in scope' })
+  t.throws(() => typeCheck(programError2), {
+    message: 'Variable "strat" not defined. Did you mean "start"?',
+  })
 })

@@ -9,6 +9,7 @@ import {
   defineVar,
   pure,
   fail,
+  typeMismatch,
 } from './type-checker'
 import { empty } from './type-context'
 
@@ -67,7 +68,7 @@ const synthBranch = (branch): TypeChecker<Type> =>
       checkExpr(Type.Cmd)(cmdExpr).map(() => Type.Cmd),
     'Branch.Cond': ({ condition, result }) =>
       pure(undefined)
-        .flatMap(() => checkExpr(Type.String)(condition))
+        .flatMap(() => checkExpr(Type.Bool)(condition))
         .flatMap(() => synthExpr(result)),
   })
 
@@ -76,13 +77,11 @@ const synthBranch = (branch): TypeChecker<Type> =>
 //-----------------------------------------------------------------------------
 
 const checkCmd = (type: Type) => (cmd: Cmd): TypeChecker<Cmd> =>
-  synthCmd(cmd).flatMap((t) =>
-    t === type ? pure(cmd) : fail("Types don't match")
-  )
+  synthCmd(cmd).flatMap((t) => (t === type ? pure(cmd) : typeMismatch(type, t)))
 
 const checkExpr = (type: Type) => (expr: Expr): TypeChecker<Expr> =>
   synthExpr(expr).flatMap((t) =>
-    t === type ? pure(expr) : fail("Types don't match")
+    t === type ? pure(expr) : typeMismatch(type, t)
   )
 
 const checkBranches = (type: Type) => (branches: any[]): TypeChecker<any[]> =>
@@ -90,7 +89,7 @@ const checkBranches = (type: Type) => (branches: any[]): TypeChecker<any[]> =>
 
 const checkBranch = (type: Type) => (branch: any): TypeChecker<any> =>
   synthBranch(branch).flatMap((t) =>
-    t === type ? pure(branch) : fail("Types don't match")
+    t === type ? pure(branch) : typeMismatch(type, t)
   )
 
 const checkProg = ({ commands }: Prog): TypeChecker<Prog> =>

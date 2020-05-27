@@ -1,15 +1,21 @@
 import { Maybe } from '../data/maybe'
 
-export type Type = 'Type.String' | 'Type.Cmd'
+export type Type = 'Type.String' | 'Type.Cmd' | 'Type.Number' | 'Type.Bool'
 export const Type = {
   Cmd: 'Type.Cmd' as Type,
   String: 'Type.String' as Type,
+  Number: 'Type.Number' as Type,
+  Bool: 'Type.Bool' as Type,
 }
 
 export const literalType = (lit: any): Type => {
   switch (typeof lit) {
     case 'string':
       return Type.String
+    case 'number':
+      return Type.Number
+    case 'boolean':
+      return Type.Bool
   }
 }
 

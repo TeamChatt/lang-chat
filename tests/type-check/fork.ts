@@ -31,8 +31,8 @@ const programError: Prog = {
     Cmd.ForkAll([
       Branch.Fork(
         Expr.Cond([
-          Branch.Cond({ condition: Expr.Lit('true'), result: Expr.Lit('3') }),
-          Branch.Cond({ condition: Expr.Lit('false'), result: Expr.Lit('5') }),
+          Branch.Cond({ condition: Expr.Lit(true), result: Expr.Lit('3') }),
+          Branch.Cond({ condition: Expr.Lit(false), result: Expr.Lit('5') }),
         ])
       ),
       Branch.Fork(
@@ -46,5 +46,7 @@ const programError: Prog = {
 }
 
 test('check reject fork', (t) => {
-  t.throws(() => typeCheck(programError), { message: "Types don't match" })
+  t.throws(() => typeCheck(programError), {
+    message: 'Expected type Type.Cmd, but found Type.String',
+  })
 })
