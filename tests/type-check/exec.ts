@@ -17,3 +17,21 @@ test('check exec', (t) => {
   const result = typeCheck(program)
   t.deepEqual(result, program)
 })
+
+const programError: Prog = {
+  commands: [
+    Cmd.Exec({
+      fn: 'exec-with-args',
+      args: [
+        Expr.Cmd(Cmd.Def({ variable: 'x', value: Expr.Lit('3') })),
+        Expr.Lit('arg2'),
+      ],
+    }),
+  ],
+}
+
+test('check reject exec', (t) => {
+  t.throws(() => typeCheck(programError), {
+    message: "Can't call exec with command type",
+  })
+})

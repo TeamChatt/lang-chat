@@ -33,10 +33,10 @@ const synthCmd = (cmd: Cmd): TypeChecker<Type> =>
     'Cmd.Def': ({ variable, value }) =>
       synthExpr(value).flatMap((t) => defineVar(variable, t)),
     'Cmd.Dialogue': () => pure(Type.Cmd),
-    'Cmd.ChooseOne': ({ branches }) => synthBranches(branches),
-    'Cmd.ChooseAll': ({ branches }) => synthBranches(branches),
-    'Cmd.ForkFirst': ({ branches }) => synthBranches(branches),
-    'Cmd.ForkAll': ({ branches }) => synthBranches(branches),
+    'Cmd.ChooseOne': ({ branches }) => checkBranches(Type.Cmd)(branches),
+    'Cmd.ChooseAll': ({ branches }) => checkBranches(Type.Cmd)(branches),
+    'Cmd.ForkFirst': ({ branches }) => checkBranches(Type.Cmd)(branches),
+    'Cmd.ForkAll': ({ branches }) => checkBranches(Type.Cmd)(branches),
   }).flatMap(() => pure(Type.Cmd))
 
 const synthExpr = (expr: Expr): TypeChecker<Type> =>
@@ -83,6 +83,14 @@ const checkCmd = (type: Type) => (cmd: Cmd): TypeChecker<Cmd> =>
 const checkExpr = (type: Type) => (expr: Expr): TypeChecker<Expr> =>
   synthExpr(expr).flatMap((t) =>
     t === type ? pure(expr) : fail("Types don't match")
+  )
+
+const checkBranches = (type: Type) => (branches: any[]): TypeChecker<any[]> =>
+  sequenceM(branches.map(checkBranch(type)))
+
+const checkBranch = (type: Type) => (branch: any): TypeChecker<any> =>
+  synthBranch(branch).flatMap((t) =>
+    t === type ? pure(branch) : fail("Types don't match")
   )
 
 const checkProg = ({ commands }: Prog): TypeChecker<Prog> =>
