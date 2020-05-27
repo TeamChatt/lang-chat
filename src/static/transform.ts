@@ -20,6 +20,9 @@ type ExprVisitor = {
   'Expr.Import'?: (expr: any) => Expr
   'Expr.Var'?: (expr: any) => Expr
   'Expr.Lit'?: (expr: any) => Expr
+  'Expr.Unary'?: (expr: any) => Expr
+  'Expr.Binary'?: (expr: any) => Expr
+  'Expr.Paren'?: (expr: any) => Expr
   'Expr.Cond'?: (expr: any) => Expr
   'Expr.Cmd'?: (expr: any) => Expr
   'Expr.Cmds'?: (expr: any) => Expr
@@ -60,6 +63,15 @@ const visitExpr = (transformer: Transformer): ExprVisitor => ({
   'Expr.Import': ({ path }) => Expr.Import(path),
   'Expr.Var': ({ variable }) => Expr.Var(variable),
   'Expr.Lit': ({ value }) => Expr.Lit(value),
+  'Expr.Unary': ({ op, expr }) =>
+    Expr.Unary({ op, expr: transformer.Expr(expr) }),
+  'Expr.Binary': ({ exprLeft, op, exprRight }) =>
+    Expr.Binary({
+      exprLeft: transformer.Expr(exprLeft),
+      op,
+      exprRight: transformer.Expr(exprRight),
+    }),
+  'Expr.Paren': ({ expr }) => Expr.Paren(transformer.Expr(expr)),
   'Expr.Cond': ({ branches }) => Expr.Cond(branches.map(transformer.Branch)),
   'Expr.Cmd': ({ cmd }) => Expr.Cmd(transformer.Cmd(cmd)),
   'Expr.Cmds': ({ cmds }) => Expr.Cmds(cmds.map(transformer.Cmd)),

@@ -21,6 +21,9 @@ type ExprVisitor = {
   'Expr.Import'?: (expr: any) => ASTContext<Expr>
   'Expr.Var'?: (expr: any) => ASTContext<Expr>
   'Expr.Lit'?: (expr: any) => ASTContext<Expr>
+  'Expr.Unary'?: (expr: any) => ASTContext<Expr>
+  'Expr.Binary'?: (expr: any) => ASTContext<Expr>
+  'Expr.Paren'?: (expr: any) => ASTContext<Expr>
   'Expr.Cond'?: (expr: any) => ASTContext<Expr>
   'Expr.Cmd'?: (expr: any) => ASTContext<Expr>
   'Expr.Cmds'?: (expr: any) => ASTContext<Expr>
@@ -77,6 +80,19 @@ const visitExpr = (transducer: Transducer): ExprVisitor => ({
   'Expr.Import': ({ path }) => pure(Expr.Import(path)),
   'Expr.Var': ({ variable }) => pure(Expr.Var(variable)),
   'Expr.Lit': ({ value }) => pure(Expr.Lit(value)),
+
+  'Expr.Unary': ({ op, expr }) =>
+    withKey('expr', transducer.Expr(expr)).map((expr) =>
+      Expr.Unary({ op, expr })
+    ),
+  'Expr.Binary': ({ exprLeft, op, exprRight }) =>
+    withKey('exprLeft', transducer.Expr(exprLeft)).flatMap((exprLeft) =>
+      withKey('exprRight', transducer.Expr(exprRight)).map((exprRight) =>
+        Expr.Binary({ exprLeft, op, exprRight })
+      )
+    ),
+  'Expr.Paren': ({ expr }) =>
+    withKey('expr', transducer.Expr(expr)).map((expr) => Expr.Paren(expr)),
   'Expr.Cond': ({ branches }) =>
     withArray('branches', branches.map(transducer.Branch)).map((branches) =>
       //@ts-ignore

@@ -111,6 +111,16 @@ const printExpr = (expr: Expr): Doc<string> =>
       seq([str('import'), str('('), str(`"${path}"`), str(')')]),
     'Expr.Var': ({ variable }) => str(variable),
     'Expr.Lit': ({ value }) => str(`${value}`),
+    'Expr.Unary': ({ op, expr }) => seq([str(op), printExpr(expr)]),
+    'Expr.Binary': ({ exprLeft, op, exprRight }) =>
+      seq([
+        printExpr(exprLeft),
+        str(' '),
+        str(op),
+        str(' '),
+        printExpr(exprRight),
+      ]),
+    'Expr.Paren': ({ expr }) => seq([str('('), printExpr(expr), str(')')]),
     'Expr.Cond': ({ branches }) =>
       seq([str('cond'), indentBlock(printBranches(branches))]),
     'Expr.Cmd': ({ cmd }) => printCmd(cmd),

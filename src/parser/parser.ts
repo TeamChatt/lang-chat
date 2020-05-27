@@ -33,8 +33,10 @@ import {
   ExprVar,
   ForkBranch,
   Prog,
+  ExprParen,
 } from '../static/ast'
 import { indentLine, space, strLit } from './helpers'
+import { withOperators } from './operator-parser'
 
 const flatten = <T>(arr: T[][]): T[] =>
   arr.length === 0 ? [] : [...arr[0], ...flatten(arr.slice(1))]
@@ -226,13 +228,6 @@ const language = (indent: number) =>
     },
 
     expr(lang: Language): Parser<Expr> {
-      const exprImport = seqObj<ExprImport>(
-        ['kind', of('Expr.Import')],
-        tImport,
-        tOpenParen,
-        ['path', tStr],
-        tCloseParen
-      )
       const exprVar = seqObj<ExprVar>(
         ['kind', of('Expr.Var')],
         ['variable', tVar]
@@ -240,6 +235,20 @@ const language = (indent: number) =>
       const exprLit = seqObj<ExprLit>(
         ['kind', of('Expr.Lit')],
         ['value', lang.literal] // prettier-ignore
+      )
+      const exprParen = seqObj<ExprParen>(
+        ['kind', of('Expr.Paren')],
+        tOpenParen,
+        ['expr', lang.expr],
+        tCloseParen
+      )
+      const exprOperators = withOperators(alt(exprVar, exprLit, exprParen))
+      const exprImport = seqObj<ExprImport>(
+        ['kind', of('Expr.Import')],
+        tImport,
+        tOpenParen,
+        ['path', tStr],
+        tCloseParen
       )
       const exprCond = seqObj<ExprCond>(
         ['kind', of('Expr.Cond')],
@@ -264,6 +273,7 @@ const language = (indent: number) =>
       )
 
       return alt<Expr>(
+        exprOperators,
         exprImport,
         exprVar,
         exprLit,

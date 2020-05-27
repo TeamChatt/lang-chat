@@ -68,6 +68,9 @@ export type Expr =
   | ExprImport
   | ExprVar
   | ExprLit
+  | ExprUnary
+  | ExprBinary
+  | ExprParen
   | ExprCond
   | ExprCmd
   | ExprCmds
@@ -83,6 +86,21 @@ export interface ExprVar {
 export interface ExprLit {
   kind: 'Expr.Lit'
   value: any
+}
+export interface ExprUnary {
+  kind: 'Expr.Unary'
+  op: string
+  expr: Expr
+}
+export interface ExprBinary {
+  kind: 'Expr.Binary'
+  op: string
+  exprLeft: Expr
+  exprRight: Expr
+}
+export interface ExprParen {
+  kind: 'Expr.Paren'
+  expr: Expr
 }
 export interface ExprCond {
   kind: 'Expr.Cond'
@@ -153,6 +171,14 @@ export const Expr = {
   Import: (path: string): Expr => ({ kind: 'Expr.Import', path }),
   Var: (variable: string): Expr => ({ kind: 'Expr.Var', variable }),
   Lit: (value: any): Expr => ({ kind: 'Expr.Lit', value }),
+  Unary: ({ op, expr }): Expr => ({ kind: 'Expr.Unary', op, expr }),
+  Binary: ({ op, exprLeft, exprRight }): Expr => ({
+    kind: 'Expr.Binary',
+    op,
+    exprLeft,
+    exprRight,
+  }),
+  Paren: (expr: Expr): Expr => ({ kind: 'Expr.Paren', expr }),
   Cond: (branches: CondBranch[]): Expr => ({ kind: 'Expr.Cond', branches }),
   Cmd: (cmd: Cmd): Expr => ({ kind: 'Expr.Cmd', cmd }),
   Cmds: (cmds: Cmd[]): Expr => ({ kind: 'Expr.Cmds', cmds }),
