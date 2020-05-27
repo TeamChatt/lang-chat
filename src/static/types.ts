@@ -12,5 +12,14 @@ export const literalType = (lit: any): Type => {
       return Type.String
   }
 }
-// TODO: replace output with type (Type | Error(Message))?
-export const unifyTypes = (types: Type[]): Maybe<Type> => Maybe.nothing()
+
+const unify = (t1: Type, t2: Type): Maybe<Type> =>
+  t1 === t2 ? Maybe.just(t1) : Maybe.nothing()
+
+export const unifyTypes = (types: Type[]): Maybe<Type> =>
+  types.length === 0
+    ? types.reduce(
+        (acc, t) => acc.flatMap((t2) => unify(t, t2)),
+        Maybe.just(types[0])
+      )
+    : Maybe.nothing()

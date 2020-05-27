@@ -4,8 +4,8 @@ export class State<S, T> {
   constructor(runState: (state: S) => [S, T]) {
     this.run = runState
   }
-  static of<S, T>(value: T) {
-    return new State<S, T>((state: S) => [state, value])
+  static of<S, T>(value: T): State<S, T> {
+    return new State((state: S) => [state, value])
   }
   static get<S>(): State<S, S> {
     return new State((state) => [state, state])

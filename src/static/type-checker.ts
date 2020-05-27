@@ -1,51 +1,44 @@
 import { Type } from './types'
+import { TryState } from '../monad/try-state'
+import {
+  TypeContext,
+  defineVar as defineVarContext,
+  lookupVar as lookupVarContext,
+  pushStack as pushStackContext,
+  popStack as popStackContext,
+} from './type-context'
 
-export class TypeChecker<T> {
-  static of<T>(t: T): TypeChecker<T> {
-    return {} as TypeChecker<T>
-  }
-  static fail(err): TypeChecker<undefined> {
-    return {} as TypeChecker<undefined>
-  }
+export type TypeChecker<T> = TryState<TypeContext, T>
 
-  // Can be written in terms of state monad??
-  map<T2>(f: (t: T) => T2): TypeChecker<T2> {
-    return {} as TypeChecker<T2>
-  }
+export class TypeError extends Error {}
 
-  flatten<T2>(): TypeChecker<T2> {
-    return {} as TypeChecker<T2>
-  }
+export const pure = <T>(v: T): TypeChecker<T> => TryState.of(v)
+export const fail = <T>(reason: string): TypeChecker<T> =>
+  TryState.fail(new TypeError(reason))
 
-  flatMap<T2>(f: (t: T) => TypeChecker<T2>): TypeChecker<T2> {
-    return this.map(f).flatten()
-  }
-}
+const pushStack = (): TypeChecker<undefined> =>
+  TryState.modify(pushStackContext)
 
-const pushStack = (): TypeChecker<undefined> => {
-  return {} as TypeChecker<undefined>
-}
-
-const popStack = (): TypeChecker<undefined> => {
-  return {} as TypeChecker<undefined>
-}
+const popStack = (): TypeChecker<undefined> => TryState.modify(popStackContext)
 
 export const scoped = <T>(m: TypeChecker<T>): TypeChecker<T> =>
   pushStack().flatMap(() => m.flatMap((mInner) => popStack().map(() => mInner)))
 
-export const sequenceM = <T>(arrM: TypeChecker<T>[]): TypeChecker<T[]> =>
-  arrM.reduce(
-    (p, q) => p.flatMap((pInner) => q.map((qInner) => [...pInner, qInner])),
-    TypeChecker.of([] as T[])
+export const lookupVar = (variable: string): TypeChecker<Type> =>
+  TryState.get<TypeContext>().flatMap((ctx) =>
+    lookupVarContext(variable)(ctx).maybe(
+      (type) => pure(type),
+      () => fail('Variable not in scope')
+    )
   )
 
-export const lookupVar = (variable: string): TypeChecker<Type> => {
-  //TODO: lookup variable in context. Throw if not in scope
-  return {} as TypeChecker<Type>
-}
 export const defineVar = (
   variable: string,
   type: Type
-): TypeChecker<undefined> => {
-  return {} as TypeChecker<undefined>
-}
+): TypeChecker<undefined> => TryState.modify(defineVarContext(variable, type))
+
+export const sequenceM = <T>(arrM: TypeChecker<T>[]): TypeChecker<T[]> =>
+  arrM.reduce(
+    (p, q) => p.flatMap((pInner) => q.map((qInner) => [...pInner, qInner])),
+    pure([] as T[])
+  )
