@@ -50,13 +50,9 @@ const programError1: Prog = {
   ],
 }
 
-const typeError1 = `Couldn't unify types: [
-  "Type.Cmd",
-  "Type.String"
-]`
 test('check reject cond 1', (t) => {
   t.throws(() => typeCheck(programError1), {
-    message: typeError1,
+    message: `Couldn't unify types: ["Type.Cmd","Type.String"]`,
   })
 })
 

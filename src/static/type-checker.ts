@@ -6,16 +6,28 @@ import {
   lookupVar as lookupVarContext,
   pushStack as pushStackContext,
   popStack as popStackContext,
+  pushLocation as pushLocationContext,
+  popLocation as popLocationContext,
 } from './type-context'
 import { bestMatches } from '../util/edit-distance'
+import { Loc } from './location'
 
 export type TypeChecker<T> = TryState<TypeContext, T>
 
-export class TypeError extends Error {}
+export class TypeError extends Error {
+  readonly loc: Loc
+  constructor(reason: string, loc: Loc) {
+    super(reason)
+    this.loc = loc
+  }
+}
 
 export const pure = <T>(v: T): TypeChecker<T> => TryState.of(v)
 export const fail = <T>(reason: string): TypeChecker<T> =>
-  TryState.fail(new TypeError(reason))
+  TryState.get<TypeContext>().flatMap((ctx) => {
+    const loc = ctx.locs[0]
+    return TryState.fail(new TypeError(reason, loc))
+  })
 
 // Error messages
 export const typeMismatch = <T>(
@@ -50,6 +62,16 @@ const popStack = (): TypeChecker<undefined> => TryState.modify(popStackContext)
 
 export const scoped = <T>(m: TypeChecker<T>): TypeChecker<T> =>
   pushStack().flatMap(() => m.flatMap((mInner) => popStack().map(() => mInner)))
+
+const pushLocation = (loc: Loc): TypeChecker<undefined> =>
+  TryState.modify(pushLocationContext(loc))
+const popLocation = (): TypeChecker<undefined> =>
+  TryState.modify(popLocationContext)
+
+export const withLocation = <T>(loc: Loc, m: TypeChecker<T>): TypeChecker<T> =>
+  pushLocation(loc).flatMap(() =>
+    m.flatMap((mInner) => popLocation().map(() => mInner))
+  )
 
 export const lookupVar = (variable: string): TypeChecker<Type> =>
   TryState.get<TypeContext>().flatMap((ctx) =>

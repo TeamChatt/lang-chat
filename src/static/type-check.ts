@@ -10,6 +10,7 @@ import {
   pure,
   fail,
   typeMismatch,
+  withLocation,
 } from './type-checker'
 import { empty } from './type-context'
 
@@ -56,7 +57,7 @@ const synthBranches = (branches: any[]): TypeChecker<Type> =>
   sequenceM(branches.map(synthBranch)).flatMap((types) =>
     unifyTypes(types).maybe(
       (t) => pure(t),
-      () => fail(`Couldn't unify types: ${JSON.stringify(types, null, 2)}`)
+      () => fail(`Couldn't unify types: ${JSON.stringify(types)}`)
     )
   )
 
@@ -77,7 +78,12 @@ const synthBranch = (branch): TypeChecker<Type> =>
 //-----------------------------------------------------------------------------
 
 const checkCmd = (type: Type) => (cmd: Cmd): TypeChecker<Cmd> =>
-  synthCmd(cmd).flatMap((t) => (t === type ? pure(cmd) : typeMismatch(type, t)))
+  withLocation(
+    cmd.loc,
+    synthCmd(cmd).flatMap((t) =>
+      t === type ? pure(cmd) : typeMismatch(type, t)
+    )
+  )
 
 const checkExpr = (type: Type) => (expr: Expr): TypeChecker<Expr> =>
   synthExpr(expr).flatMap((t) =>
