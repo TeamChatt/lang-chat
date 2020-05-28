@@ -6,7 +6,7 @@ import {
   empty as bindingEmpty,
   defineVar as bindingDefineVar,
   lookupVar as bindingLookupVar,
-} from './binding-context'
+} from '../static/binding-context'
 import { Result } from './interpreter'
 import { Choice } from './choice'
 
@@ -15,7 +15,7 @@ export type ParallelRuntimeContext = CtxParFirst | CtxParAll
 
 interface CtxSeq {
   kind: 'RuntimeContext.Seq'
-  bindings: BindingContext
+  bindings: BindingContext<Result>
   stack?: RuntimeContext
   choices?: Choice[]
   loc: Loc
@@ -79,7 +79,7 @@ export const lookupVar = (variable: string) => (
 ): Maybe<Result> =>
   match(rt, {
     'RuntimeContext.Seq': ({ bindings }) =>
-      bindingLookupVar(variable)(bindings),
+      bindingLookupVar<Result>(variable)(bindings),
   })
 
 export const popStack = (rt: RuntimeContext): RuntimeContext => rt.stack
