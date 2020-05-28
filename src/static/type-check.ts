@@ -17,6 +17,13 @@ import { empty } from './type-context'
 //-----------------------------------------------------------------------------
 // Type Synthesis
 //-----------------------------------------------------------------------------
+const synthUnify = (typesM: TypeChecker<Type>[]): TypeChecker<Type> =>
+  sequenceM(typesM).flatMap((types) =>
+    unifyTypes(types).maybe(
+      (t) => pure(t),
+      () => fail(`Couldn't unify types: ${JSON.stringify(types)}`)
+    )
+  )
 
 const synthCmd = (cmd: Cmd): TypeChecker<Type> =>
   match<TypeChecker<any>>(cmd, {
@@ -47,6 +54,44 @@ const synthExpr = (expr: Expr): TypeChecker<Type> =>
       fail("Can't infer type from import statement. Did you forget to link?"),
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(literalType(value)),
+    'Expr.Unary': ({ expr, op }) => {
+      switch (op) {
+        case '-':
+          return checkExpr(Type.Number)(expr).map(() => Type.Number)
+        case '!':
+          return checkExpr(Type.Bool)(expr).map(() => Type.Bool)
+      }
+    },
+    'Expr.Binary': ({ exprLeft, op, exprRight }) => {
+      const exprs = [exprLeft, exprRight]
+      switch (op) {
+        // Polymorphic equality
+        case '==': // fall-through
+        case '!=':
+          return synthUnify(exprs.map(synthExpr)).map(() => Type.Bool)
+        // Boolean
+        case '&&': // fall-through
+        case '||':
+          return sequenceM(exprs.map(checkExpr(Type.Bool))).map(() => Type.Bool)
+        // Numeric
+        case '+': // fall-through
+        case '-': // fall-through
+        case '*': // fall-through
+        case '/':
+          return sequenceM(exprs.map(checkExpr(Type.Number))).map(
+            () => Type.Number
+          )
+        // Comparison
+        case '<': // fall-through
+        case '<=': // fall-through
+        case '>': // fall-through
+        case '>=':
+          return sequenceM(exprs.map(checkExpr(Type.Number))).map(
+            () => Type.Bool
+          )
+      }
+    },
+    'Expr.Paren': ({ expr }) => synthExpr(expr),
     'Expr.Cond': ({ branches }) => synthBranches(branches),
     'Expr.Cmd': ({ cmd }) => checkCmd(Type.Cmd)(cmd).map(() => Type.Cmd),
     'Expr.Cmds': ({ cmds }) =>
@@ -54,12 +99,7 @@ const synthExpr = (expr: Expr): TypeChecker<Type> =>
   })
 
 const synthBranches = (branches: any[]): TypeChecker<Type> =>
-  sequenceM(branches.map(synthBranch)).flatMap((types) =>
-    unifyTypes(types).maybe(
-      (t) => pure(t),
-      () => fail(`Couldn't unify types: ${JSON.stringify(types)}`)
-    )
-  )
+  synthUnify(branches.map(synthBranch))
 
 const synthBranch = (branch): TypeChecker<Type> =>
   match(branch, {
