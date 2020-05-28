@@ -6,7 +6,7 @@ import { parse } from '../../src/parser'
 
 export const testDriver = {
   exec: async (fn, args) => {
-    return fn
+    return [fn, ...args.map((arg) => JSON.stringify(arg))].join(' ')
   },
   dialogue: async (character, line) => {
     return line

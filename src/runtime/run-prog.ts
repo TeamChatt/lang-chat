@@ -20,10 +20,11 @@ import {
 } from './interpreter'
 import { fromBranch, toBranch } from './choice'
 
-const sequenceM = <T>(
-  array: T[],
-  f: (x: T) => Interpreter<any>
-): Interpreter<any> => array.map(f).reduce((p, q) => p.flatMap(() => q), empty)
+const sequenceM = <T>(arrM: Interpreter<T>[]): Interpreter<T[]> =>
+  arrM.reduce(
+    (p, q) => p.flatMap((pInner) => q.map((qInner) => [...pInner, qInner])),
+    pure([] as T[])
+  )
 
 // Type Error
 class TypeError extends Error {}
@@ -37,7 +38,10 @@ const runCmd = (cmd: Cmd): Interpreter<any> =>
 
 const runCmdInner = (cmd: Cmd): Interpreter<any> =>
   match(cmd, {
-    'Cmd.Exec': ({ fn, args }) => exec({ fn, args }),
+    'Cmd.Exec': ({ fn, args }) =>
+      sequenceM(args.map(evalExpr)).flatMap((results) =>
+        exec({ fn, args: results.map(getResult) })
+      ),
     'Cmd.Run': ({ expr }) => evalExpr(expr).flatMap(runResult),
     'Cmd.Def': ({ variable, value }) =>
       evalExpr(value).flatMap((result) => defineVar(variable, result)),
@@ -73,7 +77,7 @@ const runResult = (result: Result): Interpreter<any> =>
   scoped(
     match(result, {
       'Result.Cmd': ({ cmd }) => runCmd(cmd),
-      'Result.Cmds': ({ cmds }) => sequenceM(cmds, runCmd),
+      'Result.Cmds': ({ cmds }) => sequenceM(cmds.map(runCmd)),
       'Result.Lit': fail,
     })
   )
@@ -112,10 +116,43 @@ const evalExpr = (expr: Expr): Interpreter<Result> =>
   match(expr, {
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(Result.Lit(value)),
+    'Expr.Unary': ({ expr, op }) =>
+      evalExpr(expr).map(getResult).map(evalUnaryOp(op)),
+    'Expr.Binary': ({ exprLeft, op, exprRight }) =>
+      evalExpr(exprLeft)
+        .map(getResult)
+        .flatMap((left) =>
+          evalExpr(exprRight)
+            .map(getResult)
+            .map((right) => evalBinaryOp(op)(left, right))
+        ),
+    'Expr.Paren': ({ expr }) => evalExpr(expr),
     'Expr.Cmd': ({ cmd }) => pure(Result.Cmd(cmd)),
     'Expr.Cmds': ({ cmds }) => pure(Result.Cmds(cmds)),
     'Expr.Cond': ({ branches }) => evalBranches(branches),
   })
+const evalUnaryOp = (op: string) => (value: any): Result => {
+  switch (op) {
+    case '!': return Result.Lit(!value) // prettier-ignore
+    case '-': return Result.Lit(-value) // prettier-ignore
+  }
+}
+const evalBinaryOp = (op: string) => (left: any, right: any): Result => {
+  switch (op) {
+    case '+':  return Result.Lit(left +  right) // prettier-ignore
+    case '-':  return Result.Lit(left -  right) // prettier-ignore
+    case '==': return Result.Lit(left == right) // prettier-ignore
+    case '!=': return Result.Lit(left != right) // prettier-ignore
+    case '&&': return Result.Lit(left && right) // prettier-ignore
+    case '||': return Result.Lit(left || right) // prettier-ignore
+    case '<':  return Result.Lit(left <  right) // prettier-ignore
+    case '<=': return Result.Lit(left <= right) // prettier-ignore
+    case '>':  return Result.Lit(left >  right) // prettier-ignore
+    case '>=': return Result.Lit(left >= right) // prettier-ignore
+    case '*':  return Result.Lit(left *  right) // prettier-ignore
+    case '/':  return Result.Lit(left /  right) // prettier-ignore
+  }
+}
 
 type BranchResult = Interpreter<Maybe<Expr>>
 const evalBranches = (branches: any[]): Interpreter<Result> =>
@@ -148,8 +185,8 @@ const getResult = (result: Result) =>
   })
 
 // Program
-export const runCmds = (cmds: Cmd[]): Interpreter<Result> =>
-  sequenceM(cmds, runCmd)
+export const runCmds = (cmds: Cmd[]): Interpreter<any> =>
+  sequenceM(cmds.map(runCmd))
 
-export const runProg = ({ commands }: Prog): Interpreter<Result> =>
+export const runProg = ({ commands }: Prog): Interpreter<any> =>
   runCmds(commands)
