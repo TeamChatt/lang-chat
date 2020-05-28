@@ -1,6 +1,6 @@
 import test from 'ava'
 import { testParse } from '../helpers'
-import { Prog, Cmd } from '../../src/static/ast'
+import { Prog, Cmd } from '../../src'
 
 const source = `@Alice
   > I told my sister she was drawing her eyebrows on too high

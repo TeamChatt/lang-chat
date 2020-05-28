@@ -1,6 +1,6 @@
 import test from 'ava'
 import { testProgram } from '../helpers'
-import { Prog, Cmd, Expr } from '../../src/static/ast'
+import { Prog, Cmd, Expr } from '../../src'
 
 const program: Prog = {
   commands: [

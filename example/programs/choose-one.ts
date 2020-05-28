@@ -1,8 +1,8 @@
-import { Prog, Branch, Cmd, Expr } from '../static/ast'
+import { Prog, Branch, Cmd, Expr } from '../../src'
 
 export const program: Prog = {
   commands: [
-    Cmd.ChooseAll([
+    Cmd.ChooseOne([
       Branch.Choice({
         label: 'first',
         cmdExpr: Expr.Cmds([Cmd.Exec({ fn: 'exec-first', args: [] })]),

@@ -17,7 +17,7 @@ const withLocation = (astM): ASTContext<any> =>
     }))
   )
 
-const tagLocation = (program) => {
+export const tagLocation = (program) => {
   const transducer = makeTransducer({
     Cmd: {
       //@ts-ignore
@@ -79,5 +79,3 @@ const tagLocation = (program) => {
 
   return transduce(transducer)(program).run(empty)[1]
 }
-
-export default tagLocation

@@ -1,8 +1,6 @@
 import test from 'ava'
-import tagLocation from '../../src/static/tag-location'
-import { typeCheck } from '../../src/static/type-check'
 import { TypeError } from '../../src/static/type-checker'
-import { Prog, Cmd, Expr, Branch } from '../../src/static/ast'
+import { Prog, Cmd, Expr, Branch, tagLocation, typeCheck } from '../../src'
 
 const programError: Prog = tagLocation({
   commands: [

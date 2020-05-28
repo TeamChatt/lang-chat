@@ -1,8 +1,5 @@
 import { Macro } from 'ava'
-import { Prog } from '../../src/static/ast'
-import tagLocation from '../../src/static/tag-location'
-import { run } from '../../src/runtime'
-import { parse } from '../../src/parser'
+import { Prog, tagLocation, run, parse } from '../../src'
 
 export const testDriver = {
   exec: async (fn, args) => {

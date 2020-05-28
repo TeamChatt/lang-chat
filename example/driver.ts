@@ -1,4 +1,4 @@
-import { Driver } from './runtime'
+import { Driver } from '../src'
 
 export const driver: Driver = {
   exec: async (fn, args) => {

@@ -1,6 +1,6 @@
 import test from 'ava'
 import { testParse } from '../helpers'
-import { Prog, Cmd, Expr, Branch } from '../../src/static/ast'
+import { Prog, Cmd, Expr, Branch } from '../../src'
 
 const source = `fork-all
   branch do

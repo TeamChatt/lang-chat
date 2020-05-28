@@ -1,4 +1,4 @@
-import { Prog, Cmd } from '../static/ast'
+import { Prog, Cmd } from '../../src'
 
 export const program: Prog = {
   commands: [
@@ -13,12 +13,3 @@ export const program: Prog = {
     Cmd.Dialogue({ character: 'Bob', line: "oh no I'm out of" }),
   ],
 }
-
-export const expectedOutput = [
-  'Haikus are fun',
-  "But sometimes they don't make sense",
-  'Refrigerator',
-  'How much can I fit',
-  'into a haiku format',
-  "oh no I'm out of",
-]

@@ -158,6 +158,4 @@ const printBranch = (branch): Doc<string> =>
 // Program
 const printProg = ({ commands }: Prog): Doc<string> => printCmds(commands)
 
-const printProgram = (program: Prog): string => layout(printProg(program))
-
-export default printProgram
+export const print = (program: Prog): string => layout(printProg(program))

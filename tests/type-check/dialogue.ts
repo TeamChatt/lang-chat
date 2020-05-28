@@ -1,6 +1,5 @@
 import test from 'ava'
-import { typeCheck } from '../../src/static/type-check'
-import { Prog, Cmd } from '../../src/static/ast'
+import { Prog, Cmd, typeCheck } from '../../src'
 
 const program: Prog = {
   commands: [

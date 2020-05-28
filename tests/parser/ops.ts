@@ -1,6 +1,6 @@
 import test from 'ava'
 import { testParse } from '../helpers'
-import { Prog, Cmd, Expr } from '../../src/static/ast'
+import { Prog, Cmd, Expr } from '../../src'
 
 const source = `let x = !(-3 + 2 * 5 >= 15) && 4 - 3 == 1`
 const program: Prog = {

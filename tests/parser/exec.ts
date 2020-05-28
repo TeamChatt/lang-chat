@@ -1,6 +1,6 @@
 import test from 'ava'
 import { testParse } from '../helpers'
-import { Prog, Cmd, Expr } from '../../src/static/ast'
+import { Prog, Cmd, Expr } from '../../src'
 
 const source = `exec("exec")
 exec("exec-with-arg", "arg")
