@@ -1,4 +1,5 @@
 import {
+  parse,
   tagLocation,
   typeCheck,
   print,

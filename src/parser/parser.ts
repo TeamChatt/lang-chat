@@ -97,6 +97,8 @@ const tNum = regexp(/[0-9]+/)
   .desc('a number')
 const tBool = alt(tTrue.result(true), tFalse.result(false))
 
+const newlines = newline.atLeast(1)
+
 // Comments
 const comment = seq(regexp(/[ ]*/), string('//'), regexp(/.*/), newline)
 
@@ -116,7 +118,7 @@ type Language = {
 const language = (indent: number) =>
   createLanguage({
     program(lang: Language): Parser<Prog> {
-      return seqObj(['commands', lang.cmds])
+      return seqObj<Prog>(['commands', lang.cmds]).trim(newline.many())
     },
 
     cmd(lang: Language): Parser<Cmd> {
@@ -218,13 +220,13 @@ const language = (indent: number) =>
             ['line', language(indent + 2).dialogueLine]
           )
             .thru(indentLine(indent + 2))
-            .sepBy(newline)
+            .sepBy(newlines)
         )
       const cmdsSingleton = lang.cmd
         .thru(indentLine(indent))
         .map((cmd) => [cmd])
 
-      return alt(cmdsDialogue, cmdsSingleton).sepBy(newline).map(flatten)
+      return alt(cmdsDialogue, cmdsSingleton).sepBy(newlines).map(flatten)
     },
 
     expr(lang: Language): Parser<Expr> {
@@ -318,16 +320,18 @@ const language = (indent: number) =>
     // Dialogue
     dialogueLine(lang): Parser<string> {
       const restOfLine = regexp(/.*/)
-      const firstLine = tCaret.then(space).then(restOfLine)
-      const nextLine = notFollowedBy(tCaret).then(restOfLine)
-      return firstLine
-        .chain((first) =>
-          nextLine
-            .thru(indentLine(indent))
-            .many()
-            .map((next) => [first, ...next])
-        )
+      const singleLine = tCaret.then(space).then(restOfLine)
+      const multiLine = seq(
+        singleLine.skip(newline),
+        notFollowedBy(tCaret)
+          .then(restOfLine)
+          .thru(indentLine(indent))
+          .sepBy1(newline)
+      )
+        .map(([first, next]) => [first, ...next])
         .tieWith('\n')
+
+      return alt(multiLine, singleLine)
     },
 
     // Literals
