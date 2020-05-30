@@ -8,7 +8,7 @@ import {
   race,
   never,
   both,
-  fork,
+  promise,
 } from 'fluture'
 
 type Future<T> = FutureInstance<any, T>
@@ -44,12 +44,8 @@ export class AsyncIO<T> {
     return AsyncIO.fromFuture(raced)
   }
 
-  run() {
-    const success = () => {}
-    const failure = () => {
-      throw new Error()
-    }
-    fork(failure)(success)(this.future)
+  toPromise() {
+    return promise(this.future)
   }
 
   map<R>(f: (t: T) => R): AsyncIO<R> {

@@ -40,7 +40,8 @@ type ASTVisitor = {
 
 // Commands
 const visitCmd = (transformer: Transformer): CmdVisitor => ({
-  'Cmd.Exec': ({ fn, args }) => Cmd.Exec({ fn, args }),
+  'Cmd.Exec': ({ fn, args }) =>
+    Cmd.Exec({ fn, args: args.map(transformer.Expr) }),
   'Cmd.Run': ({ expr }) => Cmd.Run(transformer.Expr(expr)),
   'Cmd.Def': ({ variable, value }) =>
     Cmd.Def({

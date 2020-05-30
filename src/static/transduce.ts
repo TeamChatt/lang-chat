@@ -41,7 +41,10 @@ type ASTVisitor = {
 
 // Commands
 const visitCmd = (transducer: Transducer): CmdVisitor => ({
-  'Cmd.Exec': ({ fn, args }) => pure(Cmd.Exec({ fn, args })),
+  'Cmd.Exec': ({ fn, args }) =>
+    withArray('args', args.map(transducer.Expr)).map((args) =>
+      Cmd.Exec({ fn, args })
+    ),
   'Cmd.Run': ({ expr }) =>
     withKey('expr', transducer.Expr(expr)).map((expr) => Cmd.Run(expr)),
   'Cmd.Def': ({ variable, value }) =>

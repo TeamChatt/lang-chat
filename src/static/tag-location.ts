@@ -21,12 +21,24 @@ export const tagLocation = (program) => {
   const transducer = makeTransducer({
     Cmd: {
       //@ts-ignore
-      'Cmd.Exec': ({ fn, args }) => withLocation(pure(Cmd.Exec({ fn, args }))),
+      'Cmd.Exec': ({ fn, args }) =>
+        withLocation(
+          withArray('args', args.map(transducer.Expr)).map((args) =>
+            Cmd.Exec({ fn, args })
+          )
+        ),
       'Cmd.Run': ({ expr }) =>
-        withLocation(transducer.Expr(expr).map((expr) => Cmd.Run(expr))),
+        withLocation(
+          withKey('expr', transducer.Expr(expr)).map((expr) => Cmd.Run(expr))
+        ),
       'Cmd.Def': ({ variable, value }) =>
         withLocation(
-          transducer.Expr(value).map((value) => Cmd.Def({ variable, value }))
+          withKey('value', transducer.Expr(value)).map((value) =>
+            Cmd.Def({
+              variable,
+              value,
+            })
+          )
         ),
       'Cmd.Dialogue': ({ character, line }) =>
         withLocation(pure(Cmd.Dialogue({ character, line }))),
