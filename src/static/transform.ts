@@ -114,9 +114,9 @@ const makeTransformer = (visitor: ASTVisitor): Transformer => {
 }
 
 // Program
-const transform = (visitor: ASTVisitor) => ({ commands }: Prog): Prog => {
+export const transform = (visitor: ASTVisitor) => ({
+  commands,
+}: Prog): Prog => {
   const transformer: Transformer = makeTransformer(visitor)
   return { commands: commands.map(transformer.Cmd) }
 }
-
-export default transform
