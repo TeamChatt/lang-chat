@@ -1,5 +1,5 @@
 {
-  "name": "lang-chat",
+  "name": "@team-chatt/lang-chat",
   "version": "1.0.0",
   "source": "src/index.ts",
   "main": "dist/lang-chat.js",
