@@ -1,16 +1,22 @@
 {
-  "name": "lang-experiment",
+  "name": "lang-chat",
   "version": "1.0.0",
-  "main": "index.js",
+  "source": "src/index.ts",
+  "main": "dist/lang-chat.js",
+  "module": "dist/lang-chat.module.js",
   "license": "MIT",
   "scripts": {
     "start": "parcel index.html",
+    "build": "microbundle",
+    "prepare": "npm run build",
+    "preversion": "test",
     "test": "ava",
     "test:watch": "ava --watch"
   },
   "devDependencies": {
     "@types/parsimmon": "^1.10.2",
     "ava": "^3.8.2",
+    "microbundle": "^0.12.0",
     "parcel": "^1.12.4",
     "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
