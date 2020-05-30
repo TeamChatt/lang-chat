@@ -50,8 +50,8 @@ const synthCmd = (cmd: Cmd): TypeChecker<Type> =>
 
 const synthExpr = (expr: Expr): TypeChecker<Type> =>
   match(expr, {
-    'Expr.Import': () =>
-      fail("Can't infer type from import statement. Did you forget to link?"),
+    'Expr.Import': ({ path }) =>
+      path.endsWith('.chat') ? pure(Type.Cmd) : pure(Type.String),
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(literalType(value)),
     'Expr.Unary': ({ expr, op }) => {
