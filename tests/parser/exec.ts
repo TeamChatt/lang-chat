@@ -2,7 +2,8 @@ import test from 'ava'
 import { testParse } from '../helpers'
 import { Prog, Cmd, Expr } from '../../src'
 
-const source = `exec("exec")
+const source = `\
+exec("exec")
 exec("exec-with-arg", "arg")
 exec("exec-with-args", "arg", 2, false)
 `

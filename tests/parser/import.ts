@@ -2,7 +2,8 @@ import test from 'ava'
 import { testParse } from '../helpers'
 import { Prog, Cmd, Expr } from '../../src'
 
-const source = `let x = import("path-x")
+const source = `\
+let x = import("path-x")
 let y = import("path-y")
 let z = import("path-z")
 `

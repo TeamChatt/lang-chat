@@ -2,7 +2,8 @@ import test from 'ava'
 import { testParse } from '../helpers'
 import { Prog, Cmd, Expr, Branch } from '../../src'
 
-const source = `run cond
+const source = `\
+run cond
   case true -> do
     exec("exec-true")
     exec("exec-true")

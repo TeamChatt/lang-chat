@@ -2,7 +2,8 @@ import test from 'ava'
 import { testParse } from '../helpers'
 import { Prog, Cmd } from '../../src'
 
-const source = `@Alice
+const source = `\
+@Alice
   > knock knock
 @Bob
   > who's there?

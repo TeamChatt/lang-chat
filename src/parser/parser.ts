@@ -97,10 +97,10 @@ const tNum = regexp(/[0-9]+/)
   .desc('a number')
 const tBool = alt(tTrue.result(true), tFalse.result(false))
 
-const newlines = newline.atLeast(1)
-
-// Comments
+// Lines & Comments
 const comment = seq(regexp(/[ ]*/), string('//'), regexp(/.*/), newline)
+const commentOrBlank = alt(comment, newline)
+const newlines = seq(newline, commentOrBlank.many())
 
 type Language = {
   program: Parser<Prog>
@@ -155,45 +155,45 @@ const language = (indent: number) =>
       const cmdChooseOne = seqObj<CmdChooseOne>(
         ['kind', of('Cmd.ChooseOne')],
         tChoose,
-        newline,
+        newlines,
         [
           'branches',
           language(indent + 2)
             .choiceBranch.thru(indentLine(indent + 2))
-            .sepBy(newline),
+            .sepBy(newlines),
         ]
       )
       const cmdChooseAll = seqObj<CmdChooseAll>(
         ['kind', of('Cmd.ChooseAll')],
         tChooseAll,
-        newline,
+        newlines,
         [
           'branches',
           language(indent + 2)
             .choiceBranch.thru(indentLine(indent + 2))
-            .sepBy(newline),
+            .sepBy(newlines),
         ]
       )
       const cmdForkFirst = seqObj<CmdForkFirst>(
         ['kind', of('Cmd.ForkFirst')],
         tForkFirst,
-        newline,
+        newlines,
         [
           'branches',
           language(indent + 2)
             .forkBranch.thru(indentLine(indent + 2))
-            .sepBy(newline),
+            .sepBy(newlines),
         ]
       )
       const cmdForkAll = seqObj<CmdForkAll>(
         ['kind', of('Cmd.ForkAll')],
         tForkAll,
-        newline,
+        newlines,
         [
           'branches',
           language(indent + 2)
             .forkBranch.thru(indentLine(indent + 2))
-            .sepBy(newline),
+            .sepBy(newlines),
         ]
       )
 
@@ -255,12 +255,12 @@ const language = (indent: number) =>
       const exprCond = seqObj<ExprCond>(
         ['kind', of('Expr.Cond')],
         tCond,
-        newline,
+        newlines,
         [
           'branches',
           language(indent + 2)
             .condBranch.thru(indentLine(indent + 2))
-            .sepBy(newline),
+            .sepBy(newlines),
         ]
       )
       const exprCmd = seqObj<ExprCmd>(
@@ -270,7 +270,7 @@ const language = (indent: number) =>
       const exprCmds = seqObj<ExprCmds>(
         ['kind', of('Expr.Cmds')],
         tDo,
-        newline,
+        newlines,
         ['cmds', language(indent + 2).cmds]
       )
 

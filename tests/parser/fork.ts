@@ -2,7 +2,8 @@ import test from 'ava'
 import { testParse } from '../helpers'
 import { Prog, Cmd, Expr, Branch } from '../../src'
 
-const source = `fork-all
+const source = `\
+fork-all
   branch do
     exec("exec-branch-1")
     exec("exec-branch-1")
