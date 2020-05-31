@@ -23,7 +23,7 @@ console.log(typeCheck(taggedProgram))
 //   loc: ['commands', '[0]'],
 //   choices: [],
 // }
-// const io = resume(rtContext, taggedProgram)
+// const io = resume(taggedProgram, rtContext)
 const io = run(taggedProgram)
 
 io.subscribe({

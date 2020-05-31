@@ -14,11 +14,12 @@ import {
 
 const defaultState = empty
 
-export const run = (program: Prog): Stream<Output> =>
-  resume(defaultState, program)
+export const run = (program: Prog): Stream<Output> => resume(program)
 
-export const resume = (rt: RuntimeContext, program: Prog): Stream<Output> =>
-  resumeRuntime(rt, program).run(rt).output
+export const resume = (
+  program: Prog,
+  rt: RuntimeContext = defaultState
+): Stream<Output> => resumeRuntime(rt, program).run(rt).output
 
 const runAtLocation = (loc: Loc, program: Prog): Runtime<any> => {
   const maybeCmds = queryLocation(loc)(program)
