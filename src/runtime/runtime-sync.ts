@@ -19,7 +19,7 @@ import { RuntimeError } from './runtime-error'
 import { Choice } from './choice'
 
 export type Effect = (driver: Driver) => any
-export type Output = [RuntimeContext, Effect]
+export type Output = [Effect, RuntimeContext]
 
 type RuntimeEffects<T> = {
   value: T
@@ -51,7 +51,7 @@ export class Runtime<T> {
       value: undefined,
       context,
       *[Symbol.iterator]() {
-        yield [this.context, io]
+        yield [io, this.context]
       },
     }))
   }
@@ -208,7 +208,7 @@ function* runUntilFirst<T>(
       threadQueue = [...restThreads, thread]
       contextQueue = [...restContexts, newContext]
       parallelContext = stepParallel(contextQueue)(parallelContext)
-      yield [parallelContext, effect]
+      yield [effect, parallelContext]
     }
   }
 }
@@ -238,7 +238,7 @@ function* runAll<T>(
       threadQueue = [...restThreads, thread]
       contextQueue = [...restContexts, newContext]
       parallelContext = stepParallel(contextQueue)(parallelContext)
-      yield [parallelContext, effect]
+      yield [effect, parallelContext]
     }
   }
 }

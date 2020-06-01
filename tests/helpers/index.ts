@@ -25,7 +25,7 @@ export const testProgram: Macro<[Prog, string[]]> = (
 
   // Return an observable
   const io = run(tagLocation(program))
-  return io.map(async ([ctx, effect]) => {
+  return io.map(async ([effect, ctx]) => {
     const output = await effect(testDriver)
     const expected = expectedOutput.shift()
     t.is(output, expected)

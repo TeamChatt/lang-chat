@@ -15,13 +15,16 @@ import {
   stepSeq,
   stepParallel,
   ParallelRuntimeContext,
+  SequentialRuntimeContext,
   visitBranch,
   visitedBranches,
 } from './runtime-context'
 import { RuntimeError } from './runtime-error'
+import { BindingContext } from '../static/binding-context'
+import { Result } from './interpreter'
 
 export type Effect<T> = (driver: Driver) => Promise<T>
-export type Output = [RuntimeContext, Effect<any>]
+export type Output = [Effect<any>, RuntimeContext, BindingContext<Result>]
 
 type RuntimeResult<T> = {
   context: RuntimeContext
@@ -63,7 +66,11 @@ export class Runtime<T> {
       }
       return {
         result: defer.then((value) => ({ context, value })),
-        output: Stream.of([context, effect]),
+        output: Stream.of([
+          effect,
+          context,
+          (context as SequentialRuntimeContext).bindings,
+        ]),
       }
     })
   }
@@ -219,21 +226,23 @@ const mergeOutput = (
   context: ParallelRuntimeContext
 ): Stream<Output> => {
   const streams: Stream<UpdateOutput>[] = outputs.map((output, i) =>
-    output.map(([context, effect]) => (parallelContext) => {
+    output.map(([effect, context, bindings]) => (parallelContext) => {
       const newThreads = set(i, context, parallelContext.threads)
       const newContext = stepParallel(newThreads)(parallelContext)
-      return [newContext, effect]
+      return [effect, newContext, bindings]
     })
   )
 
   return Stream.merge(...streams)
     .fold(
       (output: Output, f) => {
-        const [context, effect] = output
-        const [newContext, newEffect] = f(context as ParallelRuntimeContext)
-        return [newContext, newEffect] as Output
+        const [effect, context] = output
+        const [newEffect, newContext, bindings] = f(
+          context as ParallelRuntimeContext
+        )
+        return [newEffect, newContext, bindings] as Output
       },
-      [context, () => Promise.resolve(undefined)]
+      [() => Promise.resolve(undefined), context, null]
     )
     .drop(1)
 }

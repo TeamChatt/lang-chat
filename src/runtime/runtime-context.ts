@@ -12,6 +12,7 @@ import { Choice } from './choice'
 
 export type RuntimeContext = CtxSeq | CtxParFirst | CtxParAll
 export type ParallelRuntimeContext = CtxParFirst | CtxParAll
+export type SequentialRuntimeContext = CtxSeq
 
 interface CtxSeq {
   kind: 'RuntimeContext.Seq'

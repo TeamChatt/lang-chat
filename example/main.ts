@@ -27,7 +27,7 @@ console.log(typeCheck(taggedProgram))
 const io = run(taggedProgram)
 
 io.subscribe({
-  next: ([ctx, effect]) => {
+  next: ([effect, ctx]) => {
     console.log(ctx)
     effect(driver)
   },
