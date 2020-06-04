@@ -160,7 +160,7 @@ const language = (indent: number) =>
           'branches',
           language(indent + 2)
             .choiceBranch.thru(indentLine(indent + 2))
-            .sepBy(newlines),
+            .sepBy1(newlines),
         ]
       )
       const cmdChooseAll = seqObj<CmdChooseAll>(
@@ -171,7 +171,7 @@ const language = (indent: number) =>
           'branches',
           language(indent + 2)
             .choiceBranch.thru(indentLine(indent + 2))
-            .sepBy(newlines),
+            .sepBy1(newlines),
         ]
       )
       const cmdForkFirst = seqObj<CmdForkFirst>(
@@ -182,7 +182,7 @@ const language = (indent: number) =>
           'branches',
           language(indent + 2)
             .forkBranch.thru(indentLine(indent + 2))
-            .sepBy(newlines),
+            .sepBy1(newlines),
         ]
       )
       const cmdForkAll = seqObj<CmdForkAll>(
@@ -193,7 +193,7 @@ const language = (indent: number) =>
           'branches',
           language(indent + 2)
             .forkBranch.thru(indentLine(indent + 2))
-            .sepBy(newlines),
+            .sepBy1(newlines),
         ]
       )
 
@@ -220,7 +220,7 @@ const language = (indent: number) =>
             ['line', language(indent + 2).dialogueLine]
           )
             .thru(indentLine(indent + 2))
-            .sepBy(newlines)
+            .sepBy1(newlines)
         )
       const cmdsSingleton = lang.cmd
         .thru(indentLine(indent))
@@ -260,7 +260,7 @@ const language = (indent: number) =>
           'branches',
           language(indent + 2)
             .condBranch.thru(indentLine(indent + 2))
-            .sepBy(newlines),
+            .sepBy1(newlines),
         ]
       )
       const exprCmd = seqObj<ExprCmd>(
@@ -279,6 +279,7 @@ const language = (indent: number) =>
         exprImport,
         exprVar,
         exprLit,
+        exprParen,
         exprCond,
         exprCmd,
         exprCmds
