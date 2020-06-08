@@ -1,6 +1,6 @@
 {
   "name": "@team-chatt/lang-chat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "source": "src/index.ts",
   "main": "dist/lang-chat.js",
   "module": "dist/lang-chat.module.js",
@@ -9,7 +9,7 @@
     "start": "parcel index.html",
     "build": "microbundle",
     "prepare": "npm run build",
-    "preversion": "test",
+    "preversion": "npm run test",
     "test": "ava",
     "test:watch": "ava --watch"
   },
