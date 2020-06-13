@@ -8,6 +8,7 @@ const alts = <T>(maybes: Maybe<T>[]): Maybe<T> =>
 
 const queryCmds = (query: Loc) => (cmds: Cmd[]): Maybe<Cmd[]> =>
   alts(
+    // TODO: could make this lazier
     cmds.map((cmd, i) => {
       const withRest = (matched) => [...matched, ...cmds.slice(i + 1)]
       const queryFirst = queryCmd(query)
@@ -21,6 +22,7 @@ const queryCmds = (query: Loc) => (cmds: Cmd[]): Maybe<Cmd[]> =>
           equals(query)(loc) ? queryFirstWithRest(cmd) : queryFirst(cmd),
         'Cmd.Exec': queryFirstWithRest,
         'Cmd.Run': queryFirstWithRest,
+        'Cmd.Dialogue': queryFirstWithRest,
         'Cmd.ChooseOne': queryFirstWithRest,
         'Cmd.ChooseAll': queryFirstWithRest,
       })
