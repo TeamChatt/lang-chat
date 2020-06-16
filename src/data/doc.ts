@@ -55,16 +55,18 @@ export const concat = <T>(doc1: Doc<T>, doc2: Doc<T>): Doc<T> =>
 
 export const str = <T>(text: T): Doc<T> => Doc.Text({ text, doc: Doc.Empty })
 
-export const seq = <T>(arr: Doc<T>[]): Doc<T> =>
+export const seq = <T>(...arr: Doc<T>[]): Doc<T> =>
   arr.reduce(concat, Doc.Empty as Doc<T>)
 
 export const newline = Doc.Line({ depth: 0, doc: Doc.Empty })
 
 export const intersperse = <T>(docs: Doc<T>[], sep: Doc<T>): Doc<T> =>
   docs.reduce(
-    (acc, doc) => (doc === docs[0] ? doc : seq([acc, sep, doc])),
+    (acc, doc) => (doc === docs[0] ? doc : seq(acc, sep, doc)),
     Doc.Empty as Doc<T>
   )
+
+export const lines = <T>(docs: Doc<T>[]) => intersperse(docs, newline as Doc<T>)
 
 export const layout = (doc: Doc<string>): string =>
   match(doc, {
