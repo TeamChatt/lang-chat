@@ -144,7 +144,10 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
         match(cmd, {
           ...visitCmd(transducer),
           ...(visitor.Cmd || {}),
-        }),
+        }).map((cmdResult) => ({
+          ...(cmd.loc ? { loc: cmd.loc } : {}),
+          ...cmdResult,
+        })),
       Expr: (expr: Expr) =>
         match(expr, {
           ...visitExpr(transducer),
@@ -154,7 +157,10 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
         match(branch, {
           ...visitBranch(transducer),
           ...(visitor.Branch || {}),
-        }),
+        }).map((cmdResult) => ({
+          ...(branch.loc ? { loc: branch.loc } : {}),
+          ...cmdResult,
+        })),
     }
     return transducer
   }

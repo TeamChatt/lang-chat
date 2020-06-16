@@ -1,5 +1,5 @@
 import test from 'ava'
-import { Prog, Cmd, Expr, Branch, transformM } from '../../src'
+import { Prog, Cmd, Expr, Branch, transformM, tagLocation } from '../../src'
 import { AsyncIO } from '../../src/monad/async-io'
 
 const program: Prog = {
@@ -101,4 +101,20 @@ test('transform AST', async (t) => {
   const transformer = transformM(AsyncIO.of)(visit)
   const transformed = await (transformer(program) as AsyncIO<Prog>).toPromise()
   t.deepEqual(transformed, expected)
+})
+
+test('transform AST preserves label', async (t) => {
+  const visit = {
+    Expr: {
+      'Expr.Import': ({ path }) =>
+        AsyncIO.fromPromise(async () => {
+          return Expr.Lit(path)
+        }),
+    },
+  }
+  const transformer = transformM(AsyncIO.of)(visit)
+  const transformed = await (transformer(tagLocation(program)) as AsyncIO<
+    Prog
+  >).toPromise()
+  t.deepEqual(transformed, tagLocation(expected))
 })
