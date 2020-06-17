@@ -7,26 +7,13 @@ const alts = <T>(maybes: Maybe<T>[]): Maybe<T> =>
   maybes.reduce((m1, m2) => m1.alt(m2), Maybe.nothing())
 
 const queryCmds = (query: Loc) => (cmds: Cmd[]): Maybe<Cmd[]> =>
+  // TODO: could make this lazier
   alts(
-    // TODO: could make this lazier
-    cmds.map((cmd, i) => {
-      const withRest = (matched) => [...matched, ...cmds.slice(i + 1)]
-      const queryFirst = queryCmd(query)
-      const queryFirstWithRest = (cmd) => queryFirst(cmd).map(withRest)
-      return match(cmd, {
-        'Cmd.ForkFirst': ({ loc }) =>
-          equals(query)(loc) ? queryFirstWithRest(cmd) : queryFirst(cmd),
-        'Cmd.ForkAll': ({ loc }) =>
-          equals(query)(loc) ? queryFirstWithRest(cmd) : queryFirst(cmd),
-        'Cmd.Def': ({ loc }) =>
-          equals(query)(loc) ? queryFirstWithRest(cmd) : queryFirst(cmd),
-        'Cmd.Exec': queryFirstWithRest,
-        'Cmd.Run': queryFirstWithRest,
-        'Cmd.Dialogue': queryFirstWithRest,
-        'Cmd.ChooseOne': queryFirstWithRest,
-        'Cmd.ChooseAll': queryFirstWithRest,
-      })
-    })
+    cmds.map((cmd, i) =>
+      equals(query)(cmd.loc)
+        ? Maybe.just([cmd, ...cmds.slice(i + 1)])
+        : queryCmd(query)(cmd)
+    )
   )
 
 const queryCmd = (query: Loc) => (cmd: Cmd): Maybe<Cmd[]> =>
@@ -70,6 +57,8 @@ const queryBranch = (query: Loc) => (branch): Maybe<Cmd[]> =>
   })
 
 const queryProg = (loc: Loc) => ({ commands }: Prog): Maybe<Cmd[]> =>
-  equals(loc)(top) ? Maybe.just(commands) : queryCmds(loc)(commands) //.map((cmds) => cmds.slice(1))
+  equals(loc)(top)
+    ? Maybe.just(commands)
+    : queryCmds(loc)(commands).map((cmds) => cmds.slice(1))
 
 export default queryProg

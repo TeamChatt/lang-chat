@@ -80,7 +80,7 @@ const printCmds = (cmds: Cmd[]): Doc<string> => {
 const printCmd = (cmd: Cmd): Doc<string> =>
   match(cmd, {
     'Cmd.Exec': ({ fn, args }) =>
-      seq(str('exec'), parens(list([str(`"${fn}"`), ...args.map(str)]))),
+      seq(str('exec'), parens(list([str(`"${fn}"`), ...args.map(printExpr)]))),
     'Cmd.Run': ({ expr }) => seq(str('run'), str(' '), printExpr(expr)),
     'Cmd.Def': ({ variable, value }) =>
       seq(
