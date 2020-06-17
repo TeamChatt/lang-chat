@@ -6,6 +6,7 @@ import {
   empty as bindingEmpty,
   defineVar as bindingDefineVar,
   lookupVar as bindingLookupVar,
+  union,
 } from '../static/binding-context'
 import { Result } from './interpreter'
 import { Choice } from './choice'
@@ -80,16 +81,26 @@ export const lookupVar = (variable: string) => (
 ): Maybe<Result> =>
   match(rt, {
     'RuntimeContext.Seq': ({ bindings }) =>
-      bindingLookupVar<Result>(variable)(bindings),
+      bindingLookupVar<Result>(variable)(bindings).maybe(
+        (r) => Maybe.just(r),
+        () =>
+          rt.stack == null ? Maybe.nothing() : lookupVar(variable)(rt.stack)
+      ),
+  })
+
+export const allBindings = (rt: RuntimeContext) =>
+  match(rt, {
+    'RuntimeContext.Seq': ({ bindings }) =>
+      rt.stack ? union(allBindings(rt.stack), bindings) : bindings,
   })
 
 export const popStack = (rt: RuntimeContext): RuntimeContext => rt.stack
 
 export const pushStack = (rt: RuntimeContext): RuntimeContext =>
   match(rt, {
-    'RuntimeContext.Seq': ({ bindings, loc }) =>
+    'RuntimeContext.Seq': ({ loc }) =>
       ctxSeq({
-        bindings,
+        bindings: bindingEmpty,
         stack: rt,
         loc,
       }),

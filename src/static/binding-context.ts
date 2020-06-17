@@ -13,3 +13,8 @@ export const defineVar = <T>(variable: string, value: T) => (
 export const lookupVar = <T>(variable: string) => (
   ctx: BindingContext<T>
 ): Maybe<T> => Maybe.fromNullable(ctx[variable])
+
+export const union = <T>(ctx1: BindingContext<T>, ctx2: BindingContext<T>) => ({
+  ...ctx1,
+  ...ctx2,
+})

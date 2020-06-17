@@ -8,6 +8,7 @@ import {
   RuntimeContext,
   lookupVar,
   defineVar,
+  allBindings,
   pushStack,
   popStack,
   forkFirst,
@@ -15,7 +16,6 @@ import {
   stepSeq,
   stepParallel,
   ParallelRuntimeContext,
-  SequentialRuntimeContext,
   visitBranch,
   visitedBranches,
 } from './runtime-context'
@@ -66,11 +66,7 @@ export class Runtime<T> {
       }
       return {
         result: defer.then((value) => ({ context, value })),
-        output: Stream.of([
-          effect,
-          context,
-          (context as SequentialRuntimeContext).bindings,
-        ]),
+        output: Stream.of([effect, context, allBindings(context)]),
       }
     })
   }
