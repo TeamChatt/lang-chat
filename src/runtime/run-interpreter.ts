@@ -1,6 +1,6 @@
 import match from '../util/match'
 import { Runtime, RuntimeThread } from './runtime-async'
-import { Action, Interpreter, InterpreterThread } from './interpreter'
+import { Action, Interpreter, InterpreterThread, Result } from './interpreter'
 import { Driver } from './driver'
 
 const diff = <T>(equals: (t1: T, t2: T) => Boolean) => (
@@ -39,7 +39,8 @@ const runAction = (action: Action): Runtime<any> =>
       }),
     'Action.Eval': ({ fn, args }) =>
       Runtime.fromEffect(async (driver: Driver) => {
-        return driver.eval(fn, args)
+        const result = await driver.eval(fn, args)
+        return Result.Lit(result)
       }),
     'Action.Dialogue': ({ character, line }) =>
       Runtime.fromEffect(async (driver: Driver) => {

@@ -19,6 +19,8 @@ export const testDriver: Driver = {
   },
 }
 
+const getOutput = (r) => (r && r.kind === 'Result.Lit' ? r.value : r)
+
 export const testProgram: Macro<[Prog, string[]]> = (
   t,
   program,
@@ -29,7 +31,7 @@ export const testProgram: Macro<[Prog, string[]]> = (
   // Return an observable
   const io = run(tagLocation(program))
   return io.map(async ([effect, ctx]) => {
-    const output = await effect(testDriver)
+    const output = getOutput(await effect(testDriver))
     const expected = expectedOutput.shift()
     t.is(output, expected)
   })
