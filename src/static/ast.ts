@@ -66,6 +66,7 @@ export interface CmdForkAll {
 // Expressions
 export type Expr =
   | ExprImport
+  | ExprEval
   | ExprVar
   | ExprLit
   | ExprUnary
@@ -78,6 +79,11 @@ export type Expr =
 export interface ExprImport {
   kind: 'Expr.Import'
   path: string
+}
+export interface ExprEval {
+  kind: 'Expr.Eval'
+  fn: string
+  args: Expr[]
 }
 export interface ExprVar {
   kind: 'Expr.Var'
@@ -169,6 +175,7 @@ export const Cmd = {
 // Expressions
 export const Expr = {
   Import: (path: string): Expr => ({ kind: 'Expr.Import', path }),
+  Eval: ({ fn, args }): Expr => ({ kind: 'Expr.Eval', fn, args }),
   Var: (variable: string): Expr => ({ kind: 'Expr.Var', variable }),
   Lit: (value: any): Expr => ({ kind: 'Expr.Lit', value }),
   Unary: ({ op, expr }): Expr => ({ kind: 'Expr.Unary', op, expr }),

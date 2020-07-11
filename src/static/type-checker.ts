@@ -1,4 +1,4 @@
-import { Type } from './types'
+import { Type, unify } from './types'
 import { TryState } from '../monad/try-state'
 import {
   TypeContext,
@@ -85,6 +85,21 @@ export const defineVar = (
   variable: string,
   type: Type
 ): TypeChecker<undefined> => TryState.modify(defineVarContext(variable, type))
+
+export const expectType = (expected: Type) => (
+  actual: Type
+): TypeChecker<Type> =>
+  unify(expected, actual).maybe<TypeChecker<Type>>(
+    (unified) => pure(unified),
+    () => typeMismatch(expected, actual)
+  )
+
+export const unifyVar = (variable: string, type: Type): TypeChecker<Type> =>
+  lookupVar(variable)
+    .flatMap(expectType(type))
+    .flatMap((unified) =>
+      defineVar(variable, unified).flatMap(() => pure(unified))
+    )
 
 // Utility
 export const sequenceM = <T>(arrM: TypeChecker<T>[]): TypeChecker<T[]> =>

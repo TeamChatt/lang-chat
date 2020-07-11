@@ -9,8 +9,8 @@ import {
   defineVar,
   pure,
   fail,
-  typeMismatch,
   withLocation,
+  expectType,
 } from './type-checker'
 import { empty } from './type-context'
 
@@ -52,6 +52,19 @@ const synthExpr = (expr: Expr): TypeChecker<Type> =>
   match(expr, {
     'Expr.Import': ({ path }) =>
       path.endsWith('.chat') ? pure(Type.Cmd) : pure(Type.String),
+    'Expr.Eval': ({ args }) =>
+      // Assert that args aren't Cmd type
+      sequenceM<Type>(args.map(synthExpr))
+        .flatMap((argTypes) =>
+          sequenceM(
+            argTypes.map((t) =>
+              t !== Type.Cmd
+                ? pure(null)
+                : fail("Can't call eval with command type")
+            )
+          )
+        )
+        .flatMap(() => pure(Type.Any)),
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(literalType(value)),
     'Expr.Unary': ({ expr, op }) => {
@@ -117,29 +130,20 @@ const synthBranch = (branch): TypeChecker<Type> =>
 // Type Checking
 //-----------------------------------------------------------------------------
 
-const checkCmd = (type: Type) => (cmd: Cmd): TypeChecker<Cmd> =>
-  withLocation(
-    cmd.loc,
-    synthCmd(cmd).flatMap((t) =>
-      t === type ? pure(cmd) : typeMismatch(type, t)
-    )
-  )
+const checkCmd = (type: Type) => (cmd: Cmd): TypeChecker<Type> =>
+  withLocation(cmd.loc, synthCmd(cmd).flatMap(expectType(type)))
 
-const checkExpr = (type: Type) => (expr: Expr): TypeChecker<Expr> =>
-  synthExpr(expr).flatMap((t) =>
-    t === type ? pure(expr) : typeMismatch(type, t)
-  )
+const checkExpr = (type: Type) => (expr: Expr): TypeChecker<Type> =>
+  synthExpr(expr).flatMap(expectType(type))
 
-const checkBranches = (type: Type) => (branches: any[]): TypeChecker<any[]> =>
+const checkBranches = (type: Type) => (branches: any[]): TypeChecker<Type[]> =>
   sequenceM(branches.map(checkBranch(type)))
 
-const checkBranch = (type: Type) => (branch: any): TypeChecker<any> =>
-  synthBranch(branch).flatMap((t) =>
-    t === type ? pure(branch) : typeMismatch(type, t)
-  )
+const checkBranch = (type: Type) => (branch: any): TypeChecker<Type> =>
+  synthBranch(branch).flatMap(expectType(type))
 
 const checkProg = ({ commands }: Prog): TypeChecker<Prog> =>
-  sequenceM(commands.map(checkCmd(Type.Cmd))).map((commands) => ({ commands }))
+  sequenceM(commands.map(checkCmd(Type.Cmd))).map(() => ({ commands }))
 
 export const typeCheck = (prog: Prog): Prog =>
   checkProg(prog)

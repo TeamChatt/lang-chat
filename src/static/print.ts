@@ -109,6 +109,8 @@ const printExpr = (expr: Expr): Doc<string> =>
   match(expr, {
     'Expr.Import': ({ path }) =>
       seq(str('import'), str('('), str(`"${path}"`), str(')')),
+    'Expr.Eval': ({ fn, args }) =>
+      seq(str('eval'), parens(list([str(`"${fn}"`), ...args.map(printExpr)]))),
     'Expr.Var': ({ variable }) => str(variable),
     'Expr.Lit': ({ value }) => str(`${value}`),
     'Expr.Unary': ({ op, expr }) => seq(str(op), printExpr(expr)),

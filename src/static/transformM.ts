@@ -40,6 +40,7 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
   }
   type ExprVisitor = {
     'Expr.Import'?: (expr: any) => Monad<Expr>
+    'Expr.Eval'?: (expr: any) => Monad<Expr>
     'Expr.Var'?: (expr: any) => Monad<Expr>
     'Expr.Lit'?: (expr: any) => Monad<Expr>
     'Expr.Unary'?: (expr: any) => Monad<Expr>
@@ -95,6 +96,11 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
   // Expressions
   const visitExpr = (transformer: Transformer): ExprVisitor => ({
     'Expr.Import': ({ path }) => of(Expr.Import(path)),
+    'Expr.Eval': ({ fn, args }) =>
+      sequenceM<CondBranch>(args.map(transformer.Expr)).map((args) =>
+        Expr.Eval({ fn, args })
+      ),
+
     'Expr.Var': ({ variable }) => of(Expr.Var(variable)),
     'Expr.Lit': ({ value }) => of(Expr.Lit(value)),
 

@@ -34,6 +34,7 @@ const queryCmdInner = (query: Loc) => (cmd: Cmd): Maybe<Cmd[]> =>
 const queryExpr = (query: Loc) => (expr: Expr): Maybe<Cmd[]> =>
   match(expr, {
     'Expr.Import': () => Maybe.nothing(),
+    'Expr.Eval': () => Maybe.nothing(),
     'Expr.Var': () => Maybe.nothing(),
     'Expr.Lit': () => Maybe.nothing(),
     'Expr.Cond': ({ branches }) => queryBranches(query)(branches),

@@ -19,6 +19,7 @@ type CmdVisitor = {
 }
 type ExprVisitor = {
   'Expr.Import'?: (expr: any) => ASTContext<Expr>
+  'Expr.Eval'?: (expr: any) => ASTContext<Expr>
   'Expr.Var'?: (expr: any) => ASTContext<Expr>
   'Expr.Lit'?: (expr: any) => ASTContext<Expr>
   'Expr.Unary'?: (expr: any) => ASTContext<Expr>
@@ -81,6 +82,10 @@ const visitCmd = (transducer: Transducer): CmdVisitor => ({
 // Expressions
 const visitExpr = (transducer: Transducer): ExprVisitor => ({
   'Expr.Import': ({ path }) => pure(Expr.Import(path)),
+  'Expr.Eval': ({ fn, args }) =>
+    withArray('args', args.map(transducer.Expr)).map((args) =>
+      Expr.Eval({ fn, args })
+    ),
   'Expr.Var': ({ variable }) => pure(Expr.Var(variable)),
   'Expr.Lit': ({ value }) => pure(Expr.Lit(value)),
 
