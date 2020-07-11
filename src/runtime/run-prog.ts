@@ -17,6 +17,7 @@ import {
   scoped,
   step,
   filterChoices,
+  eval$,
 } from './interpreter'
 import { fromBranch, toBranch } from './choice'
 
@@ -116,6 +117,10 @@ const evalExpr = (expr: Expr): Interpreter<Result> =>
   match(expr, {
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(Result.Lit(value)),
+    'Expr.Eval': ({ fn, args }) =>
+      sequenceM(args.map(evalExpr)).flatMap((results) =>
+        eval$({ fn, args: results.map(getResult) })
+      ),
     'Expr.Unary': ({ expr, op }) =>
       evalExpr(expr).map(getResult).map(evalUnaryOp(op)),
     'Expr.Binary': ({ exprLeft, op, exprRight }) =>

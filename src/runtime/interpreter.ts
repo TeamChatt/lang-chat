@@ -29,6 +29,7 @@ export type Action =
   | ActionDefineVar
   | ActionLookupVar
   | ActionExec
+  | ActionEval
   | ActionDialogue
   | ActionStep
   | ActionForkFirst
@@ -49,6 +50,11 @@ interface ActionLookupVar {
 }
 interface ActionExec {
   kind: 'Action.Exec'
+  fn: string
+  args: string[]
+}
+interface ActionEval {
+  kind: 'Action.Eval'
   fn: string
   args: string[]
 }
@@ -131,6 +137,9 @@ export const filterChoices = (
 // User defined commands
 export const exec = <R>({ fn, args }): Interpreter<R> =>
   Free.lift({ kind: 'Action.Exec', fn, args })
+
+export const eval$ = <R>({ fn, args }): Interpreter<R> =>
+  Free.lift({ kind: 'Action.Eval', fn, args })
 
 export const dialogue = <R>({ character, line }): Interpreter<R> =>
   Free.lift({ kind: 'Action.Dialogue', character, line })

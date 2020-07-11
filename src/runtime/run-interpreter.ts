@@ -37,6 +37,10 @@ const runAction = (action: Action): Runtime<any> =>
       Runtime.fromEffect(async (driver: Driver) => {
         return driver.exec(fn, args)
       }),
+    'Action.Eval': ({ fn, args }) =>
+      Runtime.fromEffect(async (driver: Driver) => {
+        return driver.eval(fn, args)
+      }),
     'Action.Dialogue': ({ character, line }) =>
       Runtime.fromEffect(async (driver: Driver) => {
         return driver.dialogue(character, line)
