@@ -29,6 +29,7 @@ import {
   ExprCmds,
   ExprCond,
   ExprImport,
+  ExprEval,
   ExprLit,
   ExprVar,
   ForkBranch,
@@ -50,6 +51,7 @@ const reservedWords = [
   'cond',
   'do',
   'exec',
+  'eval',
   'false',
   'fork-all',
   'fork-first',
@@ -66,6 +68,7 @@ const tChooseAll = string('choose-all')
 const tCond = string('cond')
 const tDo = string('do')
 const tExec = string('exec')
+const tEval = string('eval')
 const tFalse = string('false')
 const tForkAll = string('fork-all')
 const tForkBranch = string('branch')
@@ -252,6 +255,14 @@ const language = (indent: number) =>
         ['path', tStr],
         tCloseParen
       )
+      const exprEval = seqObj<ExprEval>(
+        ['kind', of('Expr.Eval')],
+        tEval,
+        tOpenParen,
+        ['fn', tStr],
+        ['args', tComma.then(space).then(lang.expr).many()],
+        tCloseParen
+      )
       const exprCond = seqObj<ExprCond>(
         ['kind', of('Expr.Cond')],
         tCond,
@@ -277,6 +288,7 @@ const language = (indent: number) =>
       return alt<Expr>(
         exprOperators,
         exprImport,
+        exprEval,
         exprVar,
         exprLit,
         exprParen,
