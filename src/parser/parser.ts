@@ -28,14 +28,15 @@ import {
   ExprCmd,
   ExprCmds,
   ExprCond,
-  ExprImport,
   ExprEval,
+  ExprImport,
   ExprLit,
+  ExprParen,
   ExprVar,
   ForkBranch,
   Prog,
-  ExprParen,
 } from '../static/ast'
+import { dialogueExpr } from './dialogue'
 import { indentLine, space, strLit } from './helpers'
 import { withOperators } from './operator-parser'
 
@@ -78,13 +79,15 @@ const tLet = string('let')
 const tRun = string('run')
 const tTrue = string('true')
 // Symbol Tokens
-const tAt = string('@')
 const tArrow = string('->')
+const tAt = string('@')
 const tCaret = string('>')
-const tCloseParen = string(')')
 const tComma = string(',')
 const tEquals = string('=')
 const tOpenParen = string('(')
+const tCloseParen = string(')')
+const tStartInterpolation = string('${')
+const tEndInterpolation = string('}')
 // Variables and strings
 const tCharacterName = tAt.then(regexp(/.+/)).desc('a character name')
 const tVar = regexp(/[a-zA-Z][a-zA-Z0-9_-]*/)
@@ -101,6 +104,7 @@ const tNum = regexp(/[0-9]+/)
 const tBool = alt(tTrue.result(true), tFalse.result(false))
 
 // Lines & Comments
+const withoutInterpolation = regexp(/(?:(?!\$\{).)+/)
 const comment = seq(regexp(/[ ]*/), string('//'), regexp(/.*/), newline)
 const commentOrBlank = alt(comment, newline)
 const newlines = seq(newline, commentOrBlank.many())
@@ -110,6 +114,8 @@ type Language = {
   cmd: Parser<Cmd>
   cmds: Parser<Cmd[]>
   expr: Parser<Expr>
+  exprLine: Parser<Expr>
+  exprBlock: Parser<Expr>
   choiceBranch: Parser<any>
   forkBranch: Parser<any>
   condBranch: Parser<any>
@@ -233,6 +239,9 @@ const language = (indent: number) =>
     },
 
     expr(lang: Language): Parser<Expr> {
+      return alt(lang.exprLine, lang.exprBlock)
+    },
+    exprLine(lang: Language): Parser<Expr> {
       const exprVar = seqObj<ExprVar>(
         ['kind', of('Expr.Var')],
         ['variable', tVar]
@@ -247,7 +256,6 @@ const language = (indent: number) =>
         ['expr', lang.expr],
         tCloseParen
       )
-      const exprOperators = withOperators(alt(exprVar, exprLit, exprParen))
       const exprImport = seqObj<ExprImport>(
         ['kind', of('Expr.Import')],
         tImport,
@@ -263,6 +271,18 @@ const language = (indent: number) =>
         ['args', tComma.then(space).then(lang.expr).many()],
         tCloseParen
       )
+      const exprOperators = withOperators(alt(exprVar, exprLit, exprParen))
+      return alt<Expr>(
+        exprOperators,
+        exprImport,
+        exprEval,
+        exprVar,
+        exprLit,
+        exprParen
+      )
+    },
+
+    exprBlock(lang: Language): Parser<Expr> {
       const exprCond = seqObj<ExprCond>(
         ['kind', of('Expr.Cond')],
         tCond,
@@ -285,21 +305,11 @@ const language = (indent: number) =>
         ['cmds', language(indent + 2).cmds]
       )
 
-      return alt<Expr>(
-        exprOperators,
-        exprImport,
-        exprEval,
-        exprVar,
-        exprLit,
-        exprParen,
-        exprCond,
-        exprCmd,
-        exprCmds
-      )
+      return alt<Expr>(exprCond, exprCmd, exprCmds)
     },
 
     //Branches
-    choiceBranch(lang): Parser<ChoiceBranch> {
+    choiceBranch(lang: Language): Parser<ChoiceBranch> {
       return seqObj<ChoiceBranch>(
         ['kind', of('Branch.Choice')],
         tChoice,
@@ -309,7 +319,7 @@ const language = (indent: number) =>
         ['cmdExpr', lang.expr]
       )
     },
-    forkBranch(lang): Parser<ForkBranch> {
+    forkBranch(lang: Language): Parser<ForkBranch> {
       return seqObj<ForkBranch>(
         ['kind', of('Branch.Fork')],
         tForkBranch,
@@ -317,7 +327,7 @@ const language = (indent: number) =>
         ['cmdExpr', lang.expr] // prettier-ignore
       )
     },
-    condBranch(lang): Parser<CondBranch> {
+    condBranch(lang: Language): Parser<CondBranch> {
       return seqObj<CondBranch>(
         ['kind', of('Branch.Cond')],
         tCase,
@@ -331,20 +341,28 @@ const language = (indent: number) =>
     },
 
     // Dialogue
-    dialogueLine(lang): Parser<string> {
-      const restOfLine = regexp(/.*/)
-      const singleLine = tCaret.then(space).then(restOfLine)
+    dialogueLine(lang: Language): Parser<Expr> {
+      const words = withoutInterpolation.map(Expr.Lit)
+      const interpolation = tStartInterpolation
+        .then(lang.exprLine)
+        .skip(tEndInterpolation)
+      const line = alt(interpolation, words).many()
+
+      const firstLine = tCaret.then(space).then(line)
       const multiLine = seq(
-        singleLine.skip(newline),
+        firstLine.skip(newline),
         notFollowedBy(tCaret)
-          .then(restOfLine)
+          .then(line)
           .thru(indentLine(indent))
           .sepBy1(newline)
+      ).map(([first, next]) =>
+        [first, ...next].reduce(
+          (t1: Expr[], t2: Expr[]) => [...t1, Expr.Lit('\n'), ...t2],
+          []
+        )
       )
-        .map(([first, next]) => [first, ...next])
-        .tieWith('\n')
 
-      return alt(multiLine, singleLine)
+      return alt(multiLine, firstLine).map((parts) => dialogueExpr(parts))
     },
 
     // Literals
