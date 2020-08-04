@@ -18,7 +18,7 @@ const program: Prog = {
   commands: [
     Cmd.Dialogue({
       character: 'Alice',
-      line: Expr.Lit(`
+      line: Expr.Lit(`\
 There are only two hard problems in computer science
 0. Naming things
 1. Cache invalidation
@@ -27,7 +27,7 @@ There are only two hard problems in computer science
     }),
     Cmd.Dialogue({
       character: 'Alice',
-      line: Expr.Lit(`
+      line: Expr.Lit(`\
 There are only two hard problems in distributed computing
 2. Exactly-once delivery
 1. Guaranteed order of messages
@@ -36,4 +36,4 @@ There are only two hard problems in distributed computing
   ],
 }
 
-test('parse dialogue-formatted', testParse, source, program)
+test.only('parse dialogue-formatted', testParse, source, program)

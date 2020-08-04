@@ -356,10 +356,11 @@ const language = (indent: number) =>
           .thru(indentLine(indent))
           .sepBy1(newline)
       ).map(([first, next]) =>
-        [first, ...next].reduce(
-          (t1: Expr[], t2: Expr[]) => [...t1, Expr.Lit('\n'), ...t2],
-          []
-        )
+        [first, ...next].reduce((t1: Expr[], t2: Expr[]) => [
+          ...t1,
+          Expr.Lit('\n'),
+          ...t2,
+        ])
       )
 
       return alt(multiLine, firstLine).map((parts) => dialogueExpr(parts))
