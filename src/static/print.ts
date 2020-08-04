@@ -24,10 +24,10 @@ const indentBlock = (doc: Doc<string>): Doc<string> =>
   indent(concat(newline as Doc<string>, doc))
 
 // Dialogue
-const printLine = (line: string): Doc<string> =>
-  seq(str('>'), str(' '), str(line))
+const printLine = (line: Expr): Doc<string> =>
+  seq(str('>'), str(' '), printExpr(line))
 
-const printLines = (dialogueLines: string[]): Doc<string> =>
+const printLines = (dialogueLines: Expr[]): Doc<string> =>
   lines(dialogueLines.map(printLine))
 
 const getCharacter = (cmd: Cmd) =>
@@ -113,6 +113,7 @@ const printExpr = (expr: Expr): Doc<string> =>
       seq(str('eval'), parens(list([str(`"${fn}"`), ...args.map(printExpr)]))),
     'Expr.Var': ({ variable }) => str(variable),
     'Expr.Lit': ({ value }) => str(`${value}`),
+    'Expr.Template': ({ parts }) => str(''), //TODO
     'Expr.Unary': ({ op, expr }) => seq(str(op), printExpr(expr)),
     'Expr.Binary': ({ exprLeft, op, exprRight }) =>
       seq(

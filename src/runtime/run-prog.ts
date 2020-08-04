@@ -46,7 +46,10 @@ const runCmdInner = (cmd: Cmd): Interpreter<any> =>
     'Cmd.Run': ({ expr }) => evalExpr(expr).flatMap(runResult),
     'Cmd.Def': ({ variable, value }) =>
       evalExpr(value).flatMap((result) => defineVar(variable, result)),
-    'Cmd.Dialogue': ({ character, line }) => dialogue({ character, line }),
+    'Cmd.Dialogue': ({ character, line }) =>
+      evalExpr(line)
+        .map(getResult)
+        .flatMap((line) => dialogue({ character, line })),
     'Cmd.ChooseOne': ({ branches }) => runChooseOne(branches),
     'Cmd.ChooseAll': ({ branches }) => runChooseAll(branches),
     'Cmd.ForkFirst': ({ branches }) =>
@@ -117,6 +120,10 @@ const evalExpr = (expr: Expr): Interpreter<Result> =>
   match(expr, {
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(Result.Lit(value)),
+    'Expr.Template': ({ parts }) =>
+      sequenceM(parts.map(evalExpr)).map((parts) =>
+        Result.Lit(parts.map(getResult).join(''))
+      ),
     'Expr.Eval': ({ fn, args }) =>
       sequenceM(args.map(evalExpr)).flatMap((results) =>
         eval$({ fn, args: results.map(getResult) })

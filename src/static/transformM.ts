@@ -43,6 +43,7 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
     'Expr.Eval'?: (expr: any) => Monad<Expr>
     'Expr.Var'?: (expr: any) => Monad<Expr>
     'Expr.Lit'?: (expr: any) => Monad<Expr>
+    'Expr.Template'?: (expr: any) => Monad<Expr>
     'Expr.Unary'?: (expr: any) => Monad<Expr>
     'Expr.Binary'?: (expr: any) => Monad<Expr>
     'Expr.Paren'?: (expr: any) => Monad<Expr>
@@ -103,7 +104,10 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
 
     'Expr.Var': ({ variable }) => of(Expr.Var(variable)),
     'Expr.Lit': ({ value }) => of(Expr.Lit(value)),
-
+    'Expr.Template': ({ parts }) =>
+      sequenceM<Expr>(parts.map(transformer.Expr)).map((parts) =>
+        Expr.Template(parts)
+      ),
     'Expr.Unary': ({ op, expr }) =>
       transformer.Expr(expr).map((expr) => Expr.Unary({ op, expr })),
     'Expr.Binary': ({ exprLeft, op, exprRight }) => {

@@ -37,6 +37,7 @@ const queryExpr = (query: Loc) => (expr: Expr): Maybe<Cmd[]> =>
     'Expr.Eval': () => Maybe.nothing(),
     'Expr.Var': () => Maybe.nothing(),
     'Expr.Lit': () => Maybe.nothing(),
+    'Expr.Template': () => Maybe.nothing(),
     'Expr.Cond': ({ branches }) => queryBranches(query)(branches),
     'Expr.Cmd': ({ cmd }) => queryCmd(query)(cmd),
     'Expr.Cmds': ({ cmds }) => queryCmds(query)(cmds),

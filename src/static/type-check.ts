@@ -67,6 +67,8 @@ const synthExpr = (expr: Expr): TypeChecker<Type> =>
         .flatMap(() => pure(Type.Any)),
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(literalType(value)),
+    'Expr.Template': ({ parts }) =>
+      sequenceM(parts.map(checkExpr(Type.String))).map(() => Type.String),
     'Expr.Unary': ({ expr, op }) => {
       switch (op) {
         case '-':

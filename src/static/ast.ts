@@ -1,4 +1,5 @@
 import { Loc } from './location'
+import { coalesce } from 'fluture'
 
 // ----------------------------------------------------------------------------
 // AST Types
@@ -39,7 +40,7 @@ export interface CmdDef {
 export interface CmdDialogue {
   kind: 'Cmd.Dialogue'
   character: string
-  line: string
+  line: Expr
   loc?: Loc
 }
 export interface CmdChooseOne {
@@ -69,6 +70,7 @@ export type Expr =
   | ExprEval
   | ExprVar
   | ExprLit
+  | ExprTemplate
   | ExprUnary
   | ExprBinary
   | ExprParen
@@ -92,6 +94,10 @@ export interface ExprVar {
 export interface ExprLit {
   kind: 'Expr.Lit'
   value: any
+}
+export interface ExprTemplate {
+  kind: 'Expr.Template'
+  parts: Expr[]
 }
 export interface ExprUnary {
   kind: 'Expr.Unary'
@@ -178,6 +184,7 @@ export const Expr = {
   Eval: ({ fn, args }): Expr => ({ kind: 'Expr.Eval', fn, args }),
   Var: (variable: string): Expr => ({ kind: 'Expr.Var', variable }),
   Lit: (value: any): Expr => ({ kind: 'Expr.Lit', value }),
+  Template: (parts: Expr[]): Expr => ({ kind: 'Expr.Template', parts }),
   Unary: ({ op, expr }): Expr => ({ kind: 'Expr.Unary', op, expr }),
   Binary: ({ op, exprLeft, exprRight }): Expr => ({
     kind: 'Expr.Binary',

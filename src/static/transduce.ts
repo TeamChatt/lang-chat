@@ -21,6 +21,7 @@ type ExprVisitor = {
   'Expr.Import'?: (expr: any) => ASTContext<Expr>
   'Expr.Eval'?: (expr: any) => ASTContext<Expr>
   'Expr.Var'?: (expr: any) => ASTContext<Expr>
+  'Expr.Template'?: (expr: any) => ASTContext<Expr>
   'Expr.Lit'?: (expr: any) => ASTContext<Expr>
   'Expr.Unary'?: (expr: any) => ASTContext<Expr>
   'Expr.Binary'?: (expr: any) => ASTContext<Expr>
@@ -88,7 +89,10 @@ const visitExpr = (transducer: Transducer): ExprVisitor => ({
     ),
   'Expr.Var': ({ variable }) => pure(Expr.Var(variable)),
   'Expr.Lit': ({ value }) => pure(Expr.Lit(value)),
-
+  'Expr.Template': ({ parts }) =>
+    withArray<Expr>('parts', parts.map(transducer.Expr)).map((parts) =>
+      Expr.Template(parts)
+    ),
   'Expr.Unary': ({ op, expr }) =>
     withKey('expr', transducer.Expr(expr)).map((expr) =>
       Expr.Unary({ op, expr })

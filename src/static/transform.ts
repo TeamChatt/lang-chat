@@ -21,6 +21,7 @@ type ExprVisitor = {
   'Expr.Eval'?: (expr: any) => Expr
   'Expr.Var'?: (expr: any) => Expr
   'Expr.Lit'?: (expr: any) => Expr
+  'Expr.Template'?: (expr: any) => Expr
   'Expr.Unary'?: (expr: any) => Expr
   'Expr.Binary'?: (expr: any) => Expr
   'Expr.Paren'?: (expr: any) => Expr
@@ -67,6 +68,7 @@ const visitExpr = (transformer: Transformer): ExprVisitor => ({
     Expr.Eval({ fn, args: args.map(transformer.Expr) }),
   'Expr.Var': ({ variable }) => Expr.Var(variable),
   'Expr.Lit': ({ value }) => Expr.Lit(value),
+  'Expr.Template': ({ parts }) => Expr.Template(parts.map(transformer.Expr)),
   'Expr.Unary': ({ op, expr }) =>
     Expr.Unary({ op, expr: transformer.Expr(expr) }),
   'Expr.Binary': ({ exprLeft, op, exprRight }) =>
