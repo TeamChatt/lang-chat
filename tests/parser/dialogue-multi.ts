@@ -1,6 +1,6 @@
 import test from 'ava'
 import { testParse } from '../helpers'
-import { Prog, Cmd } from '../../src'
+import { Prog, Cmd, Expr } from '../../src'
 
 const source = `\
 @Alice
@@ -11,9 +11,14 @@ const program: Prog = {
   commands: [
     Cmd.Dialogue({
       character: 'Alice',
-      line: 'I told my sister she was drawing her eyebrows on too high',
+      line: Expr.Lit(
+        'I told my sister she was drawing her eyebrows on too high'
+      ),
     }),
-    Cmd.Dialogue({ character: 'Alice', line: 'She looked surprised' }),
+    Cmd.Dialogue({
+      character: 'Alice',
+      line: Expr.Lit('She looked surprised'),
+    }),
   ],
 }
 

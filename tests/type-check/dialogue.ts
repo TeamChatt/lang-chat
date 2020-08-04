@@ -1,13 +1,13 @@
 import test from 'ava'
-import { Prog, Cmd, typeCheck } from '../../src'
+import { Prog, Cmd, typeCheck, Expr } from '../../src'
 
 const program: Prog = {
   commands: [
-    Cmd.Dialogue({ character: 'Alice', line: 'knock knock' }),
-    Cmd.Dialogue({ character: 'Bob', line: "who's there?" }),
-    Cmd.Dialogue({ character: 'Alice', line: 'spell' }),
-    Cmd.Dialogue({ character: 'Bob', line: 'spell who?' }),
-    Cmd.Dialogue({ character: 'Alice', line: 'okay. W - H - O' }),
+    Cmd.Dialogue({ character: 'Alice', line: Expr.Lit('knock knock') }),
+    Cmd.Dialogue({ character: 'Bob', line: Expr.Lit("who's there?") }),
+    Cmd.Dialogue({ character: 'Alice', line: Expr.Lit('spell') }),
+    Cmd.Dialogue({ character: 'Bob', line: Expr.Lit('spell who?') }),
+    Cmd.Dialogue({ character: 'Alice', line: Expr.Lit('okay. W - H - O') }),
   ],
 }
 
