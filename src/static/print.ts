@@ -22,6 +22,7 @@ const parens = (doc: Doc<string>) => seq(str('('), doc, str(')'))
 const list = (docs: Doc<string>[]) => intersperse(docs, str(','))
 const indentBlock = (doc: Doc<string>): Doc<string> =>
   indent(concat(newline as Doc<string>, doc))
+const multilineStr = (line: string) => lines(line.split('\n').map(str))
 
 // Dialogue
 const printLine = (line: Expr): Doc<string> =>
@@ -112,8 +113,8 @@ const printExpr = (expr: Expr): Doc<string> =>
     'Expr.Eval': ({ fn, args }) =>
       seq(str('eval'), parens(list([str(`"${fn}"`), ...args.map(printExpr)]))),
     'Expr.Var': ({ variable }) => str(variable),
-    'Expr.Lit': ({ value }) => str(`${value}`),
-    'Expr.Template': ({ parts }) => str(''), //TODO
+    'Expr.Lit': ({ value }) => multilineStr(`${value}`),
+    'Expr.Template': ({ parts }) => seq(...parts.map(printExpr)),
     'Expr.Unary': ({ op, expr }) => seq(str(op), printExpr(expr)),
     'Expr.Binary': ({ exprLeft, op, exprRight }) =>
       seq(
