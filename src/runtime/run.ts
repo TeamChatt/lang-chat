@@ -1,7 +1,7 @@
 import { Stream } from 'xstream'
 import match from '../util/match'
 import { Loc } from '../static/location'
-import { Prog } from '../static/ast'
+import { Prog, Cmd } from '../static/ast'
 import queryLocation from '../static/query-location'
 import { Output, Runtime, RuntimeThread } from './runtime-async'
 import { runCmds } from './run-prog'
@@ -10,6 +10,7 @@ import {
   empty,
   RuntimeContext,
   ParallelRuntimeContext,
+  SequentialRuntimeContext,
 } from './runtime-context'
 
 const defaultState = empty
@@ -21,27 +22,19 @@ export const resume = (
   rt: RuntimeContext = defaultState
 ): Stream<Output> => resumeRuntime(rt, program).run(rt).output
 
-const runAtLocation = (
-  loc: Loc,
-  program: Prog,
-  after: boolean = false
-): Runtime<any> => {
-  const maybeCmds = queryLocation(loc)(program)
-  const cmds = maybeCmds.maybe(
+const cmdsAtLocation = (loc: Loc, program: Prog): Cmd[] =>
+  queryLocation(loc)(program).maybe(
     (cmds) => cmds,
     () => []
   )
-  const remaining = after ? cmds.slice(1) : cmds
-  return runInterpreter(runCmds(remaining))
-}
 
-const resumeRuntime = (
-  rt: RuntimeContext,
-  program: Prog,
-  after: boolean = false
-): Runtime<any> =>
+const resumeRuntime = (rt: RuntimeContext, program: Prog): Runtime<any> =>
+  startStack(rt, program).flatMap(() => continueStack(rt, program))
+
+const startStack = (rt: RuntimeContext, program: Prog): Runtime<any> =>
   match(rt, {
-    'RuntimeContext.Seq': ({ loc }) => runAtLocation(loc, program, after),
+    'RuntimeContext.Seq': ({ loc }) =>
+      runInterpreter(runCmds(cmdsAtLocation(loc, program))),
     'RuntimeContext.ParFirst': ({ threads }) => {
       const processes = resumeThreads(threads, program)
       return Runtime.forkFirst(processes, rt as ParallelRuntimeContext)
@@ -50,11 +43,18 @@ const resumeRuntime = (
       const processes = resumeThreads(threads, program)
       return Runtime.forkAll(processes, rt as ParallelRuntimeContext)
     },
-  }).flatMap((value) =>
-    rt.stack
-      ? Runtime.popStack().flatMap(() => resumeRuntime(rt.stack, program, true))
-      : Runtime.of(value)
-  )
+  })
+
+const continueStack = (rt: RuntimeContext, program: Prog): Runtime<any> =>
+  rt.stack
+    ? Runtime.popStack()
+        .flatMap(() => {
+          const stack = rt.stack as SequentialRuntimeContext
+          const cmds = cmdsAtLocation(stack.loc, program).slice(1)
+          return runInterpreter(runCmds(cmds))
+        })
+        .flatMap(() => continueStack(rt.stack, program))
+    : Runtime.of(null)
 
 const resumeThreads = (
   threadContexts: RuntimeContext[],
