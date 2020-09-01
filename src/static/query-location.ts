@@ -59,8 +59,6 @@ const queryBranch = (query: Loc) => (branch): Maybe<Cmd[]> =>
   })
 
 const queryProg = (loc: Loc) => ({ commands }: Prog): Maybe<Cmd[]> =>
-  equals(loc)(top)
-    ? Maybe.just(commands)
-    : queryCmds(loc)(commands).map((cmds) => cmds.slice(1))
+  equals(loc)(top) ? Maybe.just(commands) : queryCmds(loc)(commands)
 
 export default queryProg

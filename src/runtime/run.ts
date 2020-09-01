@@ -21,18 +21,27 @@ export const resume = (
   rt: RuntimeContext = defaultState
 ): Stream<Output> => resumeRuntime(rt, program).run(rt).output
 
-const runAtLocation = (loc: Loc, program: Prog): Runtime<any> => {
+const runAtLocation = (
+  loc: Loc,
+  program: Prog,
+  after: boolean = false
+): Runtime<any> => {
   const maybeCmds = queryLocation(loc)(program)
   const cmds = maybeCmds.maybe(
     (cmds) => cmds,
     () => []
   )
-  return runInterpreter(runCmds(cmds))
+  const remaining = after ? cmds.slice(1) : cmds
+  return runInterpreter(runCmds(remaining))
 }
 
-const resumeRuntime = (rt: RuntimeContext, program: Prog): Runtime<any> =>
+const resumeRuntime = (
+  rt: RuntimeContext,
+  program: Prog,
+  after: boolean = false
+): Runtime<any> =>
   match(rt, {
-    'RuntimeContext.Seq': ({ loc }) => runAtLocation(loc, program),
+    'RuntimeContext.Seq': ({ loc }) => runAtLocation(loc, program, after),
     'RuntimeContext.ParFirst': ({ threads }) => {
       const processes = resumeThreads(threads, program)
       return Runtime.forkFirst(processes, rt as ParallelRuntimeContext)
@@ -43,7 +52,7 @@ const resumeRuntime = (rt: RuntimeContext, program: Prog): Runtime<any> =>
     },
   }).flatMap((value) =>
     rt.stack
-      ? Runtime.popStack().flatMap(() => resumeRuntime(rt.stack, program))
+      ? Runtime.popStack().flatMap(() => resumeRuntime(rt.stack, program, true))
       : Runtime.of(value)
   )
 
