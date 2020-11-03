@@ -16,7 +16,7 @@ const interpretEscapes = (str: string) => {
     r: '\r',
     t: '\t',
   }
-  return str.replace(/\\(u[0-9a-fA-F]{4}|[^u])/, (_, escape) => {
+  return str.replace(/\\(u[0-9a-fA-F]{4}|[^u])/g, (_, escape) => {
     let type = escape.charAt(0)
     let hex = escape.slice(1)
     if (type === 'u') {
