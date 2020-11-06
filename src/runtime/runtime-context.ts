@@ -126,9 +126,9 @@ export const visitBranch = (choice: Choice) => (
 
 const spawn = (loc: Loc) => (rt: RuntimeContext): RuntimeContext =>
   match(rt, {
-    'RuntimeContext.Seq': ({ bindings }) =>
+    'RuntimeContext.Seq': () =>
       ctxSeq({
-        bindings,
+        bindings: allBindings(rt),
         stack: null,
         loc,
       }),
