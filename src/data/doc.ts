@@ -1,5 +1,12 @@
 import match from '../util/match'
 
+const interleave = <T>(array: T[], sep: T): T[] => {
+  if (array.length === 0) return []
+  if (array.length === 1) return array
+  const [hd, ...tail] = array
+  return [hd, sep, ...interleave(tail, sep)]
+}
+
 export const Doc = {
   Empty: { kind: 'Doc.Empty' },
   Text: <T>({ text, doc }): Doc<T> => ({ kind: 'Doc.Text', text, doc }),
@@ -22,8 +29,8 @@ interface DocLine<T> {
   doc: Doc<T>
 }
 
-export function indent<T>(doc: Doc<T>): Doc<T> {
-  return match(doc, {
+export const indent = <T>(doc: Doc<T>): Doc<T> =>
+  match(doc, {
     'Doc.Empty': () => Doc.Empty as Doc<T>,
     'Doc.Text': ({ text, doc }) =>
       Doc.Text({
@@ -36,7 +43,6 @@ export function indent<T>(doc: Doc<T>): Doc<T> {
         doc: indent(doc),
       }),
   })
-}
 
 export const concat = <T>(doc1: Doc<T>, doc2: Doc<T>): Doc<T> =>
   match(doc1, {
@@ -56,15 +62,12 @@ export const concat = <T>(doc1: Doc<T>, doc2: Doc<T>): Doc<T> =>
 export const str = <T>(text: T): Doc<T> => Doc.Text({ text, doc: Doc.Empty })
 
 export const seq = <T>(...arr: Doc<T>[]): Doc<T> =>
-  arr.reduce(concat, Doc.Empty as Doc<T>)
+  arr.reduceRight((doc1, doc2) => concat(doc2, doc1), Doc.Empty as Doc<T>)
 
 export const newline = Doc.Line({ depth: 0, doc: Doc.Empty })
 
 export const intersperse = <T>(docs: Doc<T>[], sep: Doc<T>): Doc<T> =>
-  docs.reduce(
-    (acc, doc) => (doc === docs[0] ? doc : seq(acc, sep, doc)),
-    Doc.Empty as Doc<T>
-  )
+  seq(...interleave(docs, sep))
 
 export const lines = <T>(docs: Doc<T>[]) => intersperse(docs, newline as Doc<T>)
 
