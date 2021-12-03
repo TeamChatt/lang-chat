@@ -238,7 +238,7 @@ const mergeOutput = (
         )
         return [newEffect, newContext, bindings] as Output
       },
-      [() => Promise.resolve(undefined), context, null]
+      [() => Promise.resolve(undefined), context, {}] as Output
     )
     .drop(1)
 }

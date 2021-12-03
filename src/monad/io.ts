@@ -1,10 +1,10 @@
 export class IO<T> {
   readonly run: () => T
 
-  constructor(run) {
+  constructor(run: () => T) {
     this.run = run
   }
-  static impure<T>(run): IO<T> {
+  static impure<T>(run: () => T): IO<T> {
     return new IO(run)
   }
   static pure<T>(value: T): IO<T> {
@@ -21,7 +21,7 @@ export class IO<T> {
   }
 
   flatten<S>(): IO<S> {
-    return flattenIO((this as unknown) as IO<IO<S>>)
+    return flattenIO(this as unknown as IO<IO<S>>)
   }
 
   flatMap<R>(f: (t: T) => IO<R>): IO<R> {

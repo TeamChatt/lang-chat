@@ -1,6 +1,6 @@
 import { string, regexp, fail, seq, of, Parser } from 'parsimmon'
 
-const interleave = (arr1, arr2) => {
+const interleave = <T>(arr1: T[], arr2: T[]): T[] => {
   if (arr1.length === 0) {
     return arr2
   }
@@ -33,8 +33,10 @@ const countSpaces = regexp(/[ ]*/).map((s) => s.length)
 const indentBy = (n: number): Parser<number> =>
   countSpaces.chain((x) => (x === n ? of(n) : fail(`exactly ${n} spaces`)))
 
-export const indentLine = (indent: number) => <T>(parser: Parser<T>) =>
-  indentBy(indent).then(parser)
+export const indentLine =
+  (indent: number) =>
+  <T>(parser: Parser<T>) =>
+    indentBy(indent).then(parser)
 
 export const space = string(' ')
 

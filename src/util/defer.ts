@@ -4,7 +4,7 @@ class Defer<T> {
 
   constructor() {
     this._promise = new Promise((resolve) => {
-      this._resolve = resolve
+      this._resolve = (t: T) => resolve(t)
     })
   }
   static create<T>() {

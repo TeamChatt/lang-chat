@@ -35,9 +35,14 @@ interface CtxParAll {
 
 const ctxSeq = ({
   bindings,
-  stack,
+  stack = undefined,
   loc,
   choices = undefined,
+}: {
+  bindings: BindingContext<Result>
+  stack?: RuntimeContext
+  loc: Loc
+  choices?: Choice[]
 }): RuntimeContext => ({
   kind: 'RuntimeContext.Seq',
   bindings,
@@ -60,7 +65,6 @@ const ctxParAll = ({ threads, stack }): ParallelRuntimeContext => ({
 
 export const empty: RuntimeContext = ctxSeq({
   bindings: bindingEmpty,
-  stack: null,
   loc: top,
 })
 
@@ -105,7 +109,7 @@ export const allBindings = (rt: RuntimeContext) =>
     },
   })
 
-export const popStack = (rt: RuntimeContext): RuntimeContext => rt.stack
+export const popStack = (rt: RuntimeContext): RuntimeContext => rt.stack!
 
 export const pushStack = (rt: RuntimeContext): RuntimeContext =>
   matchOr(rt, {
@@ -151,7 +155,6 @@ const spawn =
       'RuntimeContext.Seq': () =>
         ctxSeq({
           bindings: allBindings(rt),
-          stack: null,
           loc,
         }),
       default: () => {

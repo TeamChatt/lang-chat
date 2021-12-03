@@ -2,7 +2,7 @@ export abstract class Try<T> {
   static of<T>(value: T): Try<T> {
     return new Success(value)
   }
-  static fail<T>(error): Try<T> {
+  static fail<T>(error: Error): Try<T> {
     return new Fail<T>(error)
   }
   static fromAction<T>(action: () => T): Try<T> {
@@ -36,7 +36,7 @@ class Success<T> extends Try<T> {
     return Try.of(f(value))
   }
   flatten<S>(): Try<S> {
-    const { value } = (this as unknown) as Success<Try<S>>
+    const { value } = this as unknown as Success<Try<S>>
     return value
   }
   alt(attempt: Try<T>): Try<T> {
@@ -56,10 +56,10 @@ class Fail<T> extends Try<T> {
   }
 
   map<S>(f: (t: T) => S): Try<S> {
-    return (this as unknown) as Try<S>
+    return this as unknown as Try<S>
   }
   flatten<S>(): Try<S> {
-    return (this as unknown) as Try<S>
+    return this as unknown as Try<S>
   }
   alt(attempt: Try<T>): Try<T> {
     return attempt

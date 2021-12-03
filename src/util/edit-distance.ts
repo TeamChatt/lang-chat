@@ -1,6 +1,6 @@
 export const editDistance = (a: string, b: string): number => {
   if (!a || !b) return (a || b).length
-  const m = []
+  const m: number[][] = []
   for (let i = 0; i <= b.length; i++) {
     m[i] = [i]
     if (i === 0) continue
