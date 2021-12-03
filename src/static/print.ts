@@ -11,7 +11,7 @@ import {
   newline,
   Doc,
 } from '../data/doc'
-import { Prog, Cmd, Expr } from './ast'
+import { Prog, Cmd, Expr, ChoiceBranch, CondBranch, ForkBranch } from './ast'
 
 const partition = <T>(arr: T[], f: (t: T) => boolean): [T[], T[]] => {
   const index = arr.findIndex((x) => !f(x))
@@ -41,6 +41,7 @@ const getCharacter = (cmd: Cmd) =>
     'Cmd.ChooseAll': () => Maybe.nothing(),
     'Cmd.ForkFirst': () => Maybe.nothing(),
     'Cmd.ForkAll': () => Maybe.nothing(),
+    'Cmd.Return': () => Maybe.nothing(),
   })
 const getLine = (cmd: Cmd) =>
   matchOr(cmd, {
@@ -64,7 +65,7 @@ const printCmds = (cmds: Cmd[]): Doc<string> => {
 
   const coalesceWith = (cmd: Cmd, cmds: Cmd[]) =>
     getCharacter(cmd).maybe(
-      (character) => {
+      (character: string) => {
         const [match, rest] = partition(
           [cmd, ...cmds],
           matchesCharacter(character)
@@ -106,6 +107,7 @@ const printCmd = (cmd: Cmd): Doc<string> =>
       seq(str('fork-first'), indentBlock(printBranches(branches))),
     'Cmd.ForkAll': ({ branches }) =>
       seq(str('fork-all'), indentBlock(printBranches(branches))),
+    'Cmd.Return': ({ expr }) => seq(str('return'), str(' '), printExpr(expr)),
   })
 
 // Expressions
@@ -132,13 +134,18 @@ const printExpr = (expr: Expr): Doc<string> =>
       seq(str('cond'), indentBlock(printBranches(branches))),
     'Expr.Cmd': ({ cmd }) => printCmd(cmd),
     'Expr.Cmds': ({ cmds }) => seq(str('do'), indentBlock(printCmds(cmds))),
+    'Expr.Result': ({ cmdExpr }) =>
+      seq(str('result'), str(' '), printExpr(cmdExpr)),
   })
 
 // Branch types
-const printBranches = (branches): Doc<string> =>
-  lines(branches.map(printBranch))
+const printBranches = (
+  branches: (ChoiceBranch | CondBranch | ForkBranch)[]
+): Doc<string> => lines(branches.map(printBranch))
 
-const printBranch = (branch): Doc<string> =>
+const printBranch = (
+  branch: ChoiceBranch | CondBranch | ForkBranch
+): Doc<string> =>
   match(branch, {
     'Branch.Choice': ({ label, cmdExpr }) =>
       seq(

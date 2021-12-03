@@ -1,5 +1,4 @@
 import { Loc } from './location'
-import { coalesce } from 'fluture'
 
 // ----------------------------------------------------------------------------
 // AST Types
@@ -13,6 +12,7 @@ export type Prog = {
 export type Cmd =
   | CmdExec
   | CmdRun
+  | CmdReturn
   | CmdDef
   | CmdDialogue
   | CmdChooseOne
@@ -28,6 +28,11 @@ export interface CmdExec {
 }
 export interface CmdRun {
   kind: 'Cmd.Run'
+  expr: Expr
+  loc?: Loc
+}
+export interface CmdReturn {
+  kind: 'Cmd.Return'
   expr: Expr
   loc?: Loc
 }
@@ -77,6 +82,7 @@ export type Expr =
   | ExprCond
   | ExprCmd
   | ExprCmds
+  | ExprResult
 
 export interface ExprImport {
   kind: 'Expr.Import'
@@ -126,6 +132,10 @@ export interface ExprCmds {
   kind: 'Expr.Cmds'
   cmds: Cmd[]
 }
+export interface ExprResult {
+  kind: 'Expr.Result'
+  cmdExpr: Expr
+}
 
 // Branch types
 export interface ChoiceBranch {
@@ -156,6 +166,7 @@ export interface CondBranch {
 export const Cmd = {
   Exec: ({ fn, args }): Cmd => ({ kind: 'Cmd.Exec', fn, args }),
   Run: (expr: Expr): Cmd => ({ kind: 'Cmd.Run', expr }),
+  Return: (expr): Cmd => ({ kind: 'Cmd.Return', expr }),
   Dialogue: ({ character, line }): Cmd => ({
     kind: 'Cmd.Dialogue',
     character,
@@ -198,6 +209,7 @@ export const Expr = {
   Cond: (branches: CondBranch[]): Expr => ({ kind: 'Expr.Cond', branches }),
   Cmd: (cmd: Cmd): Expr => ({ kind: 'Expr.Cmd', cmd }),
   Cmds: (cmds: Cmd[]): Expr => ({ kind: 'Expr.Cmds', cmds }),
+  Result: (cmdExpr: Expr): Expr => ({ kind: 'Expr.Result', cmdExpr }),
 }
 
 // Branch types

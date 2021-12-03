@@ -44,8 +44,7 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
   // Commands
   const visitCmd = (transformer: Transformer): CmdVisitor => ({
     'Cmd.Exec': ({ fn, args }) => of(Cmd.Exec({ fn, args })),
-    'Cmd.Run': ({ expr }) =>
-      transformer.Expr(expr).map((expr) => Cmd.Run(expr)),
+    'Cmd.Run': ({ expr }) => transformer.Expr(expr).map(Cmd.Run),
     'Cmd.Def': ({ variable, value }) =>
       transformer.Expr(value).map((value) =>
         Cmd.Def({
@@ -53,24 +52,23 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
           value,
         })
       ),
+    'Cmd.Return': ({ expr }) => transformer.Expr(expr).map(Cmd.Return),
     'Cmd.Dialogue': ({ character, line }) =>
       of(Cmd.Dialogue({ character, line })),
     'Cmd.ChooseOne': ({ branches }) =>
       sequenceM<ChoiceBranch>(branches.map(transformer.Branch)).map(
-        (branches) => Cmd.ChooseOne(branches)
+        Cmd.ChooseOne
       ),
     'Cmd.ChooseAll': ({ branches }) =>
       sequenceM<ChoiceBranch>(branches.map(transformer.Branch)).map(
-        (branches) => Cmd.ChooseAll(branches)
+        Cmd.ChooseAll
       ),
     'Cmd.ForkFirst': ({ branches }) =>
-      sequenceM<ForkBranch>(branches.map(transformer.Branch)).map((branches) =>
-        Cmd.ForkFirst(branches)
+      sequenceM<ForkBranch>(branches.map(transformer.Branch)).map(
+        Cmd.ForkFirst
       ),
     'Cmd.ForkAll': ({ branches }) =>
-      sequenceM<ForkBranch>(branches.map(transformer.Branch)).map((branches) =>
-        Cmd.ForkAll(branches)
-      ),
+      sequenceM<ForkBranch>(branches.map(transformer.Branch)).map(Cmd.ForkAll),
   })
 
   // Expressions
@@ -83,9 +81,7 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
     'Expr.Var': ({ variable }) => of(Expr.Var(variable)),
     'Expr.Lit': ({ value }) => of(Expr.Lit(value)),
     'Expr.Template': ({ parts }) =>
-      sequenceM<Expr>(parts.map(transformer.Expr)).map((parts) =>
-        Expr.Template(parts)
-      ),
+      sequenceM<Expr>(parts.map(transformer.Expr)).map(Expr.Template),
     'Expr.Unary': ({ op, expr }) =>
       transformer.Expr(expr).map((expr) => Expr.Unary({ op, expr })),
     'Expr.Binary': ({ exprLeft, op, exprRight }) => {
@@ -95,15 +91,13 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
         exprRightM.map((exprRight) => Expr.Binary({ exprLeft, op, exprRight }))
       )
     },
-    'Expr.Paren': ({ expr }) =>
-      transformer.Expr(expr).map((expr) => Expr.Paren(expr)),
+    'Expr.Paren': ({ expr }) => transformer.Expr(expr).map(Expr.Paren),
     'Expr.Cond': ({ branches }) =>
-      sequenceM<CondBranch>(branches.map(transformer.Branch)).map((branches) =>
-        Expr.Cond(branches)
-      ),
-    'Expr.Cmd': ({ cmd }) => transformer.Cmd(cmd).map((cmd) => Expr.Cmd(cmd)),
+      sequenceM<CondBranch>(branches.map(transformer.Branch)).map(Expr.Cond),
+    'Expr.Cmd': ({ cmd }) => transformer.Cmd(cmd).map(Expr.Cmd),
     'Expr.Cmds': ({ cmds }) =>
-      sequenceM<Cmd>(cmds.map(transformer.Cmd)).map((cmds) => Expr.Cmds(cmds)),
+      sequenceM<Cmd>(cmds.map(transformer.Cmd)).map(Expr.Cmds),
+    'Expr.Result': ({ cmdExpr }) => transformer.Expr(cmdExpr).map(Expr.Result),
   })
 
   // Branch types

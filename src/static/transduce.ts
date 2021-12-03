@@ -36,8 +36,7 @@ const visitCmd = (transducer: Transducer): CmdVisitor => ({
     withArray('args', args.map(transducer.Expr)).map((args) =>
       Cmd.Exec({ fn, args })
     ),
-  'Cmd.Run': ({ expr }) =>
-    withKey('expr', transducer.Expr(expr)).map((expr) => Cmd.Run(expr)),
+  'Cmd.Run': ({ expr }) => withKey('expr', transducer.Expr(expr)).map(Cmd.Run),
   'Cmd.Def': ({ variable, value }) =>
     withKey('value', transducer.Expr(value)).map((value) =>
       Cmd.Def({
@@ -45,28 +44,18 @@ const visitCmd = (transducer: Transducer): CmdVisitor => ({
         value,
       })
     ),
+  'Cmd.Return': ({ expr }) =>
+    withKey('expr', transducer.Expr(expr)).map(Cmd.Return),
   'Cmd.Dialogue': ({ character, line }) =>
     pure(Cmd.Dialogue({ character, line })),
   'Cmd.ChooseOne': ({ branches }) =>
-    withArray('branches', branches.map(transducer.Branch)).map((branches) =>
-      //@ts-ignore
-      Cmd.ChooseOne(branches)
-    ),
+    withArray('branches', branches.map(transducer.Branch)).map(Cmd.ChooseOne),
   'Cmd.ChooseAll': ({ branches }) =>
-    withArray('branches', branches.map(transducer.Branch)).map((branches) =>
-      //@ts-ignore
-      Cmd.ChooseAll(branches)
-    ),
+    withArray('branches', branches.map(transducer.Branch)).map(Cmd.ChooseAll),
   'Cmd.ForkFirst': ({ branches }) =>
-    withArray('branches', branches.map(transducer.Branch)).map((branches) =>
-      //@ts-ignore
-      Cmd.ForkFirst(branches)
-    ),
+    withArray('branches', branches.map(transducer.Branch)).map(Cmd.ForkFirst),
   'Cmd.ForkAll': ({ branches }) =>
-    withArray('branches', branches.map(transducer.Branch)).map((branches) =>
-      //@ts-ignore
-      Cmd.ForkAll(branches)
-    ),
+    withArray('branches', branches.map(transducer.Branch)).map(Cmd.ForkAll),
 })
 
 // Expressions
@@ -79,32 +68,27 @@ const visitExpr = (transducer: Transducer): ExprVisitor => ({
   'Expr.Var': ({ variable }) => pure(Expr.Var(variable)),
   'Expr.Lit': ({ value }) => pure(Expr.Lit(value)),
   'Expr.Template': ({ parts }) =>
-    withArray<Expr>('parts', parts.map(transducer.Expr)).map((parts) =>
-      Expr.Template(parts)
-    ),
+    withArray<Expr>('parts', parts.map(transducer.Expr)).map(Expr.Template),
   'Expr.Unary': ({ op, expr }) =>
     withKey('expr', transducer.Expr(expr)).map((expr) =>
       Expr.Unary({ op, expr })
     ),
-  'Expr.Binary': ({ exprLeft, op, exprRight }) =>
-    withKey('exprLeft', transducer.Expr(exprLeft)).flatMap((exprLeft) =>
-      withKey('exprRight', transducer.Expr(exprRight)).map((exprRight) =>
-        Expr.Binary({ exprLeft, op, exprRight })
-      )
-    ),
+  'Expr.Binary': ({ exprLeft, op, exprRight }) => {
+    const exprLeftM = withKey('exprLeft', transducer.Expr(exprLeft))
+    const exprRightM = withKey('exprRight', transducer.Expr(exprRight))
+    return exprLeftM.flatMap((exprLeft) =>
+      exprRightM.map((exprRight) => Expr.Binary({ exprLeft, op, exprRight }))
+    )
+  },
   'Expr.Paren': ({ expr }) =>
-    withKey('expr', transducer.Expr(expr)).map((expr) => Expr.Paren(expr)),
+    withKey('expr', transducer.Expr(expr)).map(Expr.Paren),
   'Expr.Cond': ({ branches }) =>
-    withArray('branches', branches.map(transducer.Branch)).map((branches) =>
-      //@ts-ignore
-      Expr.Cond(branches)
-    ),
-  'Expr.Cmd': ({ cmd }) =>
-    withKey('cmd', transducer.Cmd(cmd)).map((cmd) => Expr.Cmd(cmd)),
+    withArray('branches', branches.map(transducer.Branch)).map(Expr.Cond),
+  'Expr.Cmd': ({ cmd }) => withKey('cmd', transducer.Cmd(cmd)).map(Expr.Cmd),
   'Expr.Cmds': ({ cmds }) =>
-    withArray<Cmd>('cmds', cmds.map(transducer.Cmd)).map((cmds) =>
-      Expr.Cmds(cmds)
-    ),
+    withArray<Cmd>('cmds', cmds.map(transducer.Cmd)).map(Expr.Cmds),
+  'Expr.Result': ({ cmdExpr }) =>
+    withKey('cmdExpr', transducer.Expr(cmdExpr)).map(Expr.Result),
 })
 
 // Branch types

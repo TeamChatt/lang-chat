@@ -2,7 +2,7 @@ import { Stream } from 'xstream'
 import { match } from '../util/match'
 import { Loc } from '../static/location'
 import { Prog, Cmd } from '../static/ast'
-import queryLocation from '../static/query-location'
+import { queryLocation } from '../static/query-location'
 import { Output, Runtime, RuntimeThread } from './runtime-async'
 import { runCmds } from './run-prog'
 import { runInterpreter } from './run-interpreter'
@@ -53,7 +53,7 @@ const continueStack = (rt: RuntimeContext, program: Prog): Runtime<any> =>
           const cmds = cmdsAtLocation(stack.loc, program).slice(1)
           return runInterpreter(runCmds(cmds))
         })
-        .flatMap(() => continueStack(rt.stack, program))
+        .flatMap(() => continueStack(rt.stack!, program))
     : Runtime.of(null)
 
 const resumeThreads = (

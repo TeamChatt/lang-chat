@@ -12,7 +12,7 @@ const queryCmds =
     // TODO: could make this lazier
     alts(
       cmds.map((cmd, i) =>
-        equals(query)(cmd.loc)
+        equals(query)(cmd.loc!)
           ? Maybe.just([cmd, ...cmds.slice(i + 1)])
           : queryCmd(query)(cmd)
       )
@@ -21,7 +21,7 @@ const queryCmds =
 const queryCmd =
   (query: Loc) =>
   (cmd: Cmd): Maybe<Cmd[]> =>
-    equals(query)(cmd.loc) ? Maybe.just([cmd]) : queryCmdInner(query)(cmd)
+    equals(query)(cmd.loc!) ? Maybe.just([cmd]) : queryCmdInner(query)(cmd)
 
 const queryCmdInner =
   (query: Loc) =>
@@ -31,6 +31,7 @@ const queryCmdInner =
       'Cmd.Exec': () => Maybe.nothing<Cmd[]>(),
       'Cmd.Run': ({ expr }) => queryExpr(query)(expr),
       'Cmd.Def': ({ value }) => queryExpr(query)(value),
+      'Cmd.Return': ({expr }) => queryExpr(query)(expr),
       'Cmd.Dialogue': () => Maybe.nothing<Cmd[]>(),
       'Cmd.ChooseOne': ({ branches }) => queryBranches(query)(branches),
       'Cmd.ChooseAll': ({ branches }) => queryBranches(query)(branches),
@@ -54,6 +55,8 @@ const queryExpr =
       'Expr.Cond': ({ branches }) => queryBranches(query)(branches),
       'Expr.Cmd': ({ cmd }) => queryCmd(query)(cmd),
       'Expr.Cmds': ({ cmds }) => queryCmds(query)(cmds),
+      //TODO: does introducing the result type mean that queryExpr needs to check sub expressions? (e.g. binary...)
+      'Expr.Result': ({ cmdExpr }) => queryExpr(query)(cmdExpr),
     })
 
 const queryBranches =
@@ -75,9 +78,7 @@ const queryBranch =
         alts([queryExpr(query)(condition), queryExpr(query)(result)]),
     })
 
-const queryProg =
+export const queryLocation =
   (loc: Loc) =>
   ({ commands }: Prog): Maybe<Cmd[]> =>
     equals(loc)(top) ? Maybe.just(commands) : queryCmds(loc)(commands)
-
-export default queryProg

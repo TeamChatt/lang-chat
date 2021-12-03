@@ -5,12 +5,16 @@ import { Choice } from './choice'
 
 // Result types
 export const Result = {
+  Unit: { kind: 'Result.Unit' } as Result,
   Lit: (value: any): Result => ({ kind: 'Result.Lit', value }),
   Cmd: (cmd: Cmd): Result => ({ kind: 'Result.Cmd', cmd }),
   Cmds: (cmds: Cmd[]): Result => ({ kind: 'Result.Cmds', cmds }),
 }
-export type Result = ResultLit | ResultCmd | ResultCmds
+export type Result = ResultUnit | ResultLit | ResultCmd | ResultCmds
 
+interface ResultUnit {
+  kind: 'Result.Unit'
+}
 interface ResultLit {
   kind: 'Result.Lit'
   value: any
@@ -121,10 +125,11 @@ export const step = <R>(loc: Loc): Interpreter<R> =>
 
 export const forkFirst = <R>(
   branches: InterpreterThread<R>[]
-): Interpreter<R> => Free.lift({ kind: 'Action.ForkFirst', branches })
+): Interpreter<ResultUnit> => Free.lift({ kind: 'Action.ForkFirst', branches })
 
-export const forkAll = <R>(branches: InterpreterThread<R>[]): Interpreter<R> =>
-  Free.lift({ kind: 'Action.ForkAll', branches })
+export const forkAll = <R>(
+  branches: InterpreterThread<R>[]
+): Interpreter<ResultUnit> => Free.lift({ kind: 'Action.ForkAll', branches })
 
 export const choice = <R>(choiceBranches: Choice[]): Interpreter<R> =>
   Free.lift({ kind: 'Action.Choice', branches: choiceBranches })
@@ -135,11 +140,11 @@ export const filterChoices = (
   Free.lift({ kind: 'Action.FilterChoices', branches: choiceBranches })
 
 // User defined commands
-export const exec = <R>({ fn, args }): Interpreter<R> =>
+export const exec = ({ fn, args }): Interpreter<ResultUnit> =>
   Free.lift({ kind: 'Action.Exec', fn, args })
 
 export const eval$ = <R>({ fn, args }): Interpreter<R> =>
   Free.lift({ kind: 'Action.Eval', fn, args })
 
-export const dialogue = <R>({ character, line }): Interpreter<R> =>
+export const dialogue = ({ character, line }): Interpreter<ResultUnit> =>
   Free.lift({ kind: 'Action.Dialogue', character, line })

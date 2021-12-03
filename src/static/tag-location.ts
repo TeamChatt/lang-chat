@@ -20,7 +20,6 @@ const withLocation = (astM): ASTContext<any> =>
 export const tagLocation = (program) => {
   const transducer = makeTransducer({
     Cmd: {
-      //@ts-ignore
       'Cmd.Exec': ({ fn, args }) =>
         withLocation(
           withArray('args', args.map(transducer.Expr)).map((args) =>
@@ -43,7 +42,6 @@ export const tagLocation = (program) => {
       'Cmd.Dialogue': ({ character, line }) =>
         withLocation(pure(Cmd.Dialogue({ character, line }))),
       'Cmd.ChooseOne': ({ branches }) =>
-        //@ts-ignore
         withLocation(
           withArray('branches', branches.map(transducer.Branch)).map(
             (branches) =>
@@ -52,7 +50,6 @@ export const tagLocation = (program) => {
           )
         ),
       'Cmd.ChooseAll': ({ branches }) =>
-        //@ts-ignore
         withLocation(
           withArray('branches', branches.map(transducer.Branch)).map(
             (branches) =>
@@ -61,7 +58,6 @@ export const tagLocation = (program) => {
           )
         ),
       'Cmd.ForkFirst': ({ branches }) =>
-        //@ts-ignore
         withLocation(
           withArray('branches', branches.map(transducer.Branch)).map(
             (branches) =>
@@ -70,7 +66,6 @@ export const tagLocation = (program) => {
           )
         ),
       'Cmd.ForkAll': ({ branches }) =>
-        //@ts-ignore
         withLocation(
           withArray('branches', branches.map(transducer.Branch)).map(
             (branches) =>

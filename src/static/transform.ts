@@ -45,6 +45,7 @@ const visitCmd = (transformer: Transformer): CmdVisitor => ({
       variable,
       value: transformer.Expr(value),
     }),
+  'Cmd.Return': ({ expr }) => Cmd.Return(transformer.Expr(expr)),
   'Cmd.Dialogue': ({ character, line }) => Cmd.Dialogue({ character, line }),
   'Cmd.ChooseOne': ({ branches }) =>
     Cmd.ChooseOne(branches.map(transformer.Branch)),
@@ -76,6 +77,7 @@ const visitExpr = (transformer: Transformer): ExprVisitor => ({
   'Expr.Cond': ({ branches }) => Expr.Cond(branches.map(transformer.Branch)),
   'Expr.Cmd': ({ cmd }) => Expr.Cmd(transformer.Cmd(cmd)),
   'Expr.Cmds': ({ cmds }) => Expr.Cmds(cmds.map(transformer.Cmd)),
+  'Expr.Result': ({ cmdExpr }) => Expr.Result(transformer.Expr(cmdExpr)),
 })
 
 // Branch types

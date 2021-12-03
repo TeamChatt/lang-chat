@@ -1,5 +1,12 @@
 import { match } from '../util/match'
-import { Prog, Cmd, Expr, ChoiceBranch } from '../static/ast'
+import {
+  Prog,
+  Cmd,
+  Expr,
+  ChoiceBranch,
+  CondBranch,
+  ForkBranch,
+} from '../static/ast'
 import { Loc } from '../static/location'
 import { Maybe } from '../data/maybe'
 import {
@@ -34,24 +41,30 @@ const fail = () => {
 }
 
 // Commands
-const runCmd = (cmd: Cmd): Interpreter<any> =>
-  step(cmd.loc).flatMap(() => runCmdInner(cmd))
+const runCmd = (cmd: Cmd): Interpreter<Result> =>
+  step(cmd.loc!).flatMap(() => runCmdInner(cmd))
 
-const runCmdInner = (cmd: Cmd): Interpreter<any> =>
+const runCmdInner = (cmd: Cmd): Interpreter<Result> =>
   match(cmd, {
     'Cmd.Exec': ({ fn, args }) =>
-      sequenceM(args.map(evalExpr)).flatMap((results) =>
-        exec({ fn, args: results.map(getResult) })
-      ),
+      sequenceM(args.map(evalExpr))
+        .flatMap((results) => exec({ fn, args: results.map(getResult) }))
+        .map(() => Result.Unit),
     'Cmd.Run': ({ expr }) => evalExpr(expr).flatMap(runResult),
+    'Cmd.Return': ({ expr }) => evalExpr(expr),
     'Cmd.Def': ({ variable, value }) =>
-      evalExpr(value).flatMap((result) => defineVar(variable, result)),
+      evalExpr(value)
+        .flatMap((result) => defineVar(variable, result))
+        .map(() => Result.Unit),
     'Cmd.Dialogue': ({ character, line }) =>
       evalExpr(line)
         .map(getResult)
-        .flatMap((line) => dialogue({ character, line })),
-    'Cmd.ChooseOne': ({ branches }) => runChooseOne(branches),
-    'Cmd.ChooseAll': ({ branches }) => runChooseAll(branches),
+        .flatMap((line) => dialogue({ character, line }))
+        .map(() => Result.Unit),
+    'Cmd.ChooseOne': ({ branches }) =>
+      runChooseOne(branches).map(() => Result.Unit),
+    'Cmd.ChooseAll': ({ branches }) =>
+      runChooseAll(branches).map(() => Result.Unit),
     'Cmd.ForkFirst': ({ branches }) =>
       forkFirst(
         branches.map((branch) => ({
@@ -68,21 +81,24 @@ const runCmdInner = (cmd: Cmd): Interpreter<any> =>
       ),
   })
 
-const runBranch = (branch): Interpreter<any> =>
+const runBranch = (branch: ChoiceBranch | ForkBranch): Interpreter<Result> =>
   match(branch, {
     'Branch.Choice': ({ cmdExpr }) => evalExpr(cmdExpr).flatMap(runResult),
     'Branch.Fork': ({ cmdExpr }) => evalExpr(cmdExpr).flatMap(runResult),
-    'Branch.Cond': fail,
   })
 
-const branchLoc = (branch): Loc => branch.loc
+const branchLoc = (branch: ForkBranch): Loc => branch.loc!
 
-const runResult = (result: Result): Interpreter<any> =>
+const runResult = (result: Result): Interpreter<Result> =>
   scoped(
     match(result, {
       'Result.Cmd': ({ cmd }) => runCmd(cmd),
-      'Result.Cmds': ({ cmds }) => sequenceM(cmds.map(runCmd)),
+      'Result.Cmds': ({ cmds }) =>
+        sequenceM(cmds.map(runCmd)).map(
+          (results) => results[results.length - 1]
+        ),
       'Result.Lit': fail,
+      'Result.Unit': fail,
     })
   )
 
@@ -94,12 +110,10 @@ const filteredChoices = (
     choices.map(toBranch(choiceBranches))
   )
 
-const runChooseOne = (
-  choiceBranches: ChoiceBranch[]
-): Interpreter<ChoiceBranch> =>
+const runChooseOne = (choiceBranches: ChoiceBranch[]): Interpreter<Result> =>
   filteredChoices(choiceBranches).flatMap(runChoices(choiceBranches))
 
-const runChooseAll = (choiceBranches: ChoiceBranch[]): Interpreter<any> =>
+const runChooseAll = (choiceBranches: ChoiceBranch[]): Interpreter<Result> =>
   filteredChoices(choiceBranches).flatMap((branches) =>
     branches.length === 0
       ? empty
@@ -110,7 +124,7 @@ const runChooseAll = (choiceBranches: ChoiceBranch[]): Interpreter<any> =>
 
 const runChoices =
   (originalChoices: ChoiceBranch[]) =>
-  (choices: ChoiceBranch[]): Interpreter<ChoiceBranch> =>
+  (choices: ChoiceBranch[]): Interpreter<Result> =>
     choice(choices.map(fromBranch(originalChoices)))
       .map(toBranch(originalChoices))
       .flatMap((choiceBranch) => runBranch(choiceBranch))
@@ -118,6 +132,9 @@ const runChoices =
 // Expressions
 const evalExpr = (expr: Expr): Interpreter<Result> =>
   match(expr, {
+    'Expr.Import': () => {
+      throw new Error('')
+    },
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(Result.Lit(value)),
     'Expr.Template': ({ parts }) =>
@@ -126,7 +143,7 @@ const evalExpr = (expr: Expr): Interpreter<Result> =>
       ),
     'Expr.Eval': ({ fn, args }) =>
       sequenceM(args.map(evalExpr)).flatMap((results) =>
-        eval$({ fn, args: results.map(getResult) })
+        eval$({ fn, args: results.map(getResult) }).map(Result.Lit)
       ),
     'Expr.Unary': ({ expr, op }) =>
       evalExpr(expr).map(getResult).map(evalUnaryOp(op)),
@@ -142,6 +159,10 @@ const evalExpr = (expr: Expr): Interpreter<Result> =>
     'Expr.Cmd': ({ cmd }) => pure(Result.Cmd(cmd)),
     'Expr.Cmds': ({ cmds }) => pure(Result.Cmds(cmds)),
     'Expr.Cond': ({ branches }) => evalBranches(branches),
+    'Expr.Result': ({ cmdExpr }) =>
+      evalExpr(cmdExpr)
+        .flatMap(runResult)
+        .map((result) => Result.Lit(result)),
   })
 const evalUnaryOp =
   (op: string) =>
@@ -149,6 +170,8 @@ const evalUnaryOp =
     switch (op) {
       case '!': return Result.Lit(!value) // prettier-ignore
       case '-': return Result.Lit(-value) // prettier-ignore
+      default:
+        throw new Error(`Unrecognized operator ${op}`)
     }
   }
 const evalBinaryOp =
@@ -167,11 +190,13 @@ const evalBinaryOp =
       case '>=': return Result.Lit(left >= right) // prettier-ignore
       case '*':  return Result.Lit(left *  right) // prettier-ignore
       case '/':  return Result.Lit(left /  right) // prettier-ignore
+      default:
+        throw new Error(`Unrecognized operator ${op}`)
     }
   }
 
 type BranchResult = Interpreter<Maybe<Expr>>
-const evalBranches = (branches: any[]): Interpreter<Result> =>
+const evalBranches = (branches: CondBranch[]): Interpreter<Result> =>
   branches
     .reduce<BranchResult>(
       (acc, branch) =>
@@ -185,11 +210,11 @@ const evalBranches = (branches: any[]): Interpreter<Result> =>
     )
     .flatMap((maybeExpr) => maybeExpr.maybe(evalExpr, fail))
 
-const evalBranch = (branch): BranchResult =>
+const evalBranch = (branch: CondBranch): BranchResult =>
   match(branch, {
     'Branch.Cond': ({ condition, result }) =>
       evalExpr(condition).map((c) =>
-        getResult(c) ? Maybe.just(result) : Maybe.nothing()
+        getResult(c) ? Maybe.just(result) : Maybe.nothing<Expr>()
       ),
   })
 
@@ -198,6 +223,7 @@ const getResult = (result: Result) =>
     'Result.Cmd': fail,
     'Result.Cmds': fail,
     'Result.Lit': ({ value }) => value,
+    'Result.Unit': () => undefined,
   })
 
 // Program
