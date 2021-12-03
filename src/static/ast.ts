@@ -132,6 +132,7 @@ export interface ChoiceBranch {
   kind: 'Branch.Choice'
   label: string
   cmdExpr: Expr
+  loc?: Loc
 }
 
 export interface ForkBranch {
@@ -144,6 +145,7 @@ export interface CondBranch {
   kind: 'Branch.Cond'
   condition: Expr
   result: Expr
+  loc?: Loc
 }
 
 // ----------------------------------------------------------------------------

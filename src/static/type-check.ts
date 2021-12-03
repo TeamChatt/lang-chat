@@ -26,7 +26,7 @@ const synthUnify = (typesM: TypeChecker<Type>[]): TypeChecker<Type> =>
   )
 
 const synthCmd = (cmd: Cmd): TypeChecker<Type> =>
-  match<TypeChecker<any>>(cmd, {
+  match(cmd, {
     'Cmd.Exec': ({ args }) =>
       // Assert that args aren't Cmd type
       sequenceM<Type>(args.map(synthExpr)).flatMap((argTypes) =>

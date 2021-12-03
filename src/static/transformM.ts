@@ -1,4 +1,4 @@
-import { match } from '../util/match'
+import { match, Matcher } from '../util/match'
 import {
   Prog,
   Cmd,
@@ -28,38 +28,17 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
     Expr: (expr: Expr) => Monad<Expr>
     Branch: (branch: any) => Monad<any>
   }
-  type CmdVisitor = {
-    'Cmd.Exec'?: (cmd: any) => Monad<Cmd>
-    'Cmd.Run'?: (cmd: any) => Monad<Cmd>
-    'Cmd.Def'?: (cmd: any) => Monad<Cmd>
-    'Cmd.Dialogue'?: (cmd: any) => Monad<Cmd>
-    'Cmd.ChooseOne'?: (cmd: any) => Monad<Cmd>
-    'Cmd.ChooseAll'?: (cmd: any) => Monad<Cmd>
-    'Cmd.ForkFirst'?: (cmd: any) => Monad<Cmd>
-    'Cmd.ForkAll'?: (cmd: any) => Monad<Cmd>
-  }
-  type ExprVisitor = {
-    'Expr.Import'?: (expr: any) => Monad<Expr>
-    'Expr.Eval'?: (expr: any) => Monad<Expr>
-    'Expr.Var'?: (expr: any) => Monad<Expr>
-    'Expr.Lit'?: (expr: any) => Monad<Expr>
-    'Expr.Template'?: (expr: any) => Monad<Expr>
-    'Expr.Unary'?: (expr: any) => Monad<Expr>
-    'Expr.Binary'?: (expr: any) => Monad<Expr>
-    'Expr.Paren'?: (expr: any) => Monad<Expr>
-    'Expr.Cond'?: (expr: any) => Monad<Expr>
-    'Expr.Cmd'?: (expr: any) => Monad<Expr>
-    'Expr.Cmds'?: (expr: any) => Monad<Expr>
-  }
+  type CmdVisitor = Matcher<Cmd, Monad<Cmd>>
+  type ExprVisitor = Matcher<Expr, Monad<Expr>>
   type BranchVisitor = {
-    'Branch.Choice'?: (branch: any) => Monad<any>
-    'Branch.Fork'?: (branch: any) => Monad<any>
-    'Branch.Cond'?: (branch: any) => Monad<any>
+    'Branch.Choice': (branch: ChoiceBranch) => Monad<ChoiceBranch>
+    'Branch.Fork': (branch: ForkBranch) => Monad<ForkBranch>
+    'Branch.Cond': (branch: CondBranch) => Monad<CondBranch>
   }
   type ASTVisitor = {
-    Cmd?: CmdVisitor
-    Expr?: ExprVisitor
-    Branch?: BranchVisitor
+    Cmd?: Partial<CmdVisitor>
+    Expr?: Partial<ExprVisitor>
+    Branch?: Partial<BranchVisitor>
   }
 
   // Commands
@@ -98,10 +77,9 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
   const visitExpr = (transformer: Transformer): ExprVisitor => ({
     'Expr.Import': ({ path }) => of(Expr.Import(path)),
     'Expr.Eval': ({ fn, args }) =>
-      sequenceM<CondBranch>(args.map(transformer.Expr)).map((args) =>
+      sequenceM<Expr>(args.map(transformer.Expr)).map((args) =>
         Expr.Eval({ fn, args })
       ),
-
     'Expr.Var': ({ variable }) => of(Expr.Var(variable)),
     'Expr.Lit': ({ value }) => of(Expr.Lit(value)),
     'Expr.Template': ({ parts }) =>
@@ -163,7 +141,7 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
           ...visitExpr(transducer),
           ...(visitor.Expr || {}),
         }),
-      Branch: (branch: any) =>
+      Branch: (branch: CondBranch | ChoiceBranch | ForkBranch) =>
         match(branch, {
           ...visitBranch(transducer),
           ...(visitor.Branch || {}),

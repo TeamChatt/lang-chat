@@ -20,6 +20,8 @@ type WithDefault<T, U = any> = Partial<T> & {
   default: (...args: Parameters<FuncsOnly<T>[keyof T]>) => U
 }
 
+export type Matcher<T extends { kind: string }, R> = Handler<OfUnion<T>, R>
+
 // Handle all cases
 export const match = <
   T extends { kind: string },

@@ -1,4 +1,4 @@
-import { match } from '../util/match'
+import { match, matchOr } from '../util/match'
 import { Maybe } from '../data/maybe'
 import {
   indent,
@@ -43,8 +43,11 @@ const getCharacter = (cmd: Cmd) =>
     'Cmd.ForkAll': () => Maybe.nothing(),
   })
 const getLine = (cmd: Cmd) =>
-  match(cmd, {
+  matchOr(cmd, {
     'Cmd.Dialogue': ({ line }) => line,
+    default: () => {
+      throw new Error(`Can't get line from non-dialogue command`)
+    },
   })
 const matchesCharacter = (character: string) => (cmd: Cmd) =>
   getCharacter(cmd)

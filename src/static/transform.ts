@@ -1,43 +1,38 @@
-import { match } from '../util/match'
-import { Prog, Cmd, Expr, Branch } from './ast'
+import { match, Matcher } from '../util/match'
+import {
+  Prog,
+  Cmd,
+  Expr,
+  Branch,
+  ChoiceBranch,
+  ForkBranch,
+  CondBranch,
+} from './ast'
+
+// prettier-ignore
+type BranchTransformer = <T extends ChoiceBranch | ForkBranch | CondBranch>(
+  branch: T
+) => T extends ChoiceBranch ? ChoiceBranch
+  : T extends ForkBranch ? ForkBranch
+  : T extends CondBranch ? CondBranch
+  : never
 
 type Transformer = {
   Cmd: (cmd: Cmd) => Cmd
   Expr: (expr: Expr) => Expr
-  Branch: (branch: any) => any
+  Branch: BranchTransformer
 }
-type CmdVisitor = {
-  'Cmd.Exec'?: (cmd: any) => Cmd
-  'Cmd.Run'?: (cmd: any) => Cmd
-  'Cmd.Def'?: (cmd: any) => Cmd
-  'Cmd.Dialogue'?: (cmd: any) => Cmd
-  'Cmd.ChooseOne'?: (cmd: any) => Cmd
-  'Cmd.ChooseAll'?: (cmd: any) => Cmd
-  'Cmd.ForkFirst'?: (cmd: any) => Cmd
-  'Cmd.ForkAll'?: (cmd: any) => Cmd
-}
-type ExprVisitor = {
-  'Expr.Import'?: (expr: any) => Expr
-  'Expr.Eval'?: (expr: any) => Expr
-  'Expr.Var'?: (expr: any) => Expr
-  'Expr.Lit'?: (expr: any) => Expr
-  'Expr.Template'?: (expr: any) => Expr
-  'Expr.Unary'?: (expr: any) => Expr
-  'Expr.Binary'?: (expr: any) => Expr
-  'Expr.Paren'?: (expr: any) => Expr
-  'Expr.Cond'?: (expr: any) => Expr
-  'Expr.Cmd'?: (expr: any) => Expr
-  'Expr.Cmds'?: (expr: any) => Expr
-}
+type CmdVisitor = Matcher<Cmd, Cmd>
+type ExprVisitor = Matcher<Expr, Expr>
 type BranchVisitor = {
-  'Branch.Choice'?: (branch: any) => any
-  'Branch.Fork'?: (branch: any) => any
-  'Branch.Cond'?: (branch: any) => any
+  'Branch.Choice': (branch: ChoiceBranch) => ChoiceBranch
+  'Branch.Fork': (branch: ForkBranch) => ForkBranch
+  'Branch.Cond': (branch: CondBranch) => CondBranch
 }
 type ASTVisitor = {
-  Cmd?: CmdVisitor
-  Expr?: ExprVisitor
-  Branch?: BranchVisitor
+  Cmd?: Partial<CmdVisitor>
+  Expr?: Partial<ExprVisitor>
+  Branch?: Partial<BranchVisitor>
 }
 
 // Commands
@@ -110,11 +105,11 @@ const makeTransformer = (visitor: ASTVisitor): Transformer => {
         ...visitExpr(transformer),
         ...(visitor.Expr || {}),
       }),
-    Branch: (branch: any) =>
+    Branch: ((branch: ChoiceBranch | ForkBranch | CondBranch) =>
       match(branch, {
         ...visitBranch(transformer),
         ...(visitor.Branch || {}),
-      }),
+      })) as unknown as BranchTransformer,
   }
   return transformer
 }

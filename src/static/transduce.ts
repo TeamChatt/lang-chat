@@ -1,44 +1,33 @@
-import { match } from '../util/match'
-import { Prog, Cmd, Expr, Branch } from './ast'
+import { match, Matcher } from '../util/match'
+import {
+  Prog,
+  Cmd,
+  Expr,
+  Branch,
+  ChoiceBranch,
+  ForkBranch,
+  CondBranch,
+} from './ast'
 import { ASTContext, pure, withKey, withArray } from './ast-context'
 
 type Transducer = {
   Cmd: (cmd: Cmd) => ASTContext<Cmd>
   Expr: (expr: Expr) => ASTContext<Expr>
-  Branch: (branch: any) => ASTContext<any>
+  Branch: (
+    branch: ChoiceBranch | ForkBranch | CondBranch
+  ) => ASTContext<ChoiceBranch | ForkBranch | CondBranch>
 }
-type CmdVisitor = {
-  'Cmd.Exec'?: (cmd: any) => ASTContext<Cmd>
-  'Cmd.Run'?: (cmd: any) => ASTContext<Cmd>
-  'Cmd.Def'?: (cmd: any) => ASTContext<Cmd>
-  'Cmd.Dialogue'?: (cmd: any) => ASTContext<Cmd>
-  'Cmd.ChooseOne'?: (cmd: any) => ASTContext<Cmd>
-  'Cmd.ChooseAll'?: (cmd: any) => ASTContext<Cmd>
-  'Cmd.ForkFirst'?: (cmd: any) => ASTContext<Cmd>
-  'Cmd.ForkAll'?: (cmd: any) => ASTContext<Cmd>
-}
-type ExprVisitor = {
-  'Expr.Import'?: (expr: any) => ASTContext<Expr>
-  'Expr.Eval'?: (expr: any) => ASTContext<Expr>
-  'Expr.Var'?: (expr: any) => ASTContext<Expr>
-  'Expr.Template'?: (expr: any) => ASTContext<Expr>
-  'Expr.Lit'?: (expr: any) => ASTContext<Expr>
-  'Expr.Unary'?: (expr: any) => ASTContext<Expr>
-  'Expr.Binary'?: (expr: any) => ASTContext<Expr>
-  'Expr.Paren'?: (expr: any) => ASTContext<Expr>
-  'Expr.Cond'?: (expr: any) => ASTContext<Expr>
-  'Expr.Cmd'?: (expr: any) => ASTContext<Expr>
-  'Expr.Cmds'?: (expr: any) => ASTContext<Expr>
-}
+type CmdVisitor = Matcher<Cmd, ASTContext<Cmd>>
+type ExprVisitor = Matcher<Expr, ASTContext<Expr>>
 type BranchVisitor = {
-  'Branch.Choice'?: (branch: any) => ASTContext<any>
-  'Branch.Fork'?: (branch: any) => ASTContext<any>
-  'Branch.Cond'?: (branch: any) => ASTContext<any>
+  'Branch.Choice': (branch: ChoiceBranch) => ASTContext<ChoiceBranch>
+  'Branch.Fork': (branch: ForkBranch) => ASTContext<ForkBranch>
+  'Branch.Cond': (branch: CondBranch) => ASTContext<CondBranch>
 }
 type ASTVisitor = {
-  Cmd?: CmdVisitor
-  Expr?: ExprVisitor
-  Branch?: BranchVisitor
+  Cmd?: Partial<CmdVisitor>
+  Expr?: Partial<ExprVisitor>
+  Branch?: Partial<BranchVisitor>
 }
 
 // Commands
@@ -152,7 +141,7 @@ export const makeTransducer = (visitor: ASTVisitor): Transducer => {
         ...visitExpr(transducer),
         ...(visitor.Expr || {}),
       }),
-    Branch: (branch: any) =>
+    Branch: (branch: ChoiceBranch | ForkBranch | CondBranch) =>
       match(branch, {
         ...visitBranch(transducer),
         ...(visitor.Branch || {}),

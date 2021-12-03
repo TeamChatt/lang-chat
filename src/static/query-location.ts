@@ -26,6 +26,7 @@ const queryCmd =
 const queryCmdInner =
   (query: Loc) =>
   (cmd: Cmd): Maybe<Cmd[]> =>
+    // prettier-ignore
     match(cmd, {
       'Cmd.Exec': () => Maybe.nothing<Cmd[]>(),
       'Cmd.Run': ({ expr }) => queryExpr(query)(expr),
@@ -34,18 +35,22 @@ const queryCmdInner =
       'Cmd.ChooseOne': ({ branches }) => queryBranches(query)(branches),
       'Cmd.ChooseAll': ({ branches }) => queryBranches(query)(branches),
       'Cmd.ForkFirst': ({ branches }) => queryBranches(query)(branches),
-      'Cmd.ForkAll': ({ branches }) => queryBranches(query)(branches),
+      'Cmd.ForkAll':   ({ branches }) => queryBranches(query)(branches),
     })
 
 const queryExpr =
   (query: Loc) =>
   (expr: Expr): Maybe<Cmd[]> =>
+    // prettier-ignore
     match(expr, {
-      'Expr.Import': () => Maybe.nothing(),
-      'Expr.Eval': () => Maybe.nothing(),
-      'Expr.Var': () => Maybe.nothing(),
-      'Expr.Lit': () => Maybe.nothing(),
-      'Expr.Template': () => Maybe.nothing(),
+      'Expr.Import':   () => Maybe.nothing<Cmd[]>(),
+      'Expr.Eval':     () => Maybe.nothing<Cmd[]>(),
+      'Expr.Var':      () => Maybe.nothing<Cmd[]>(),
+      'Expr.Lit':      () => Maybe.nothing<Cmd[]>(),
+      'Expr.Unary':    () => Maybe.nothing<Cmd[]>(),
+      'Expr.Binary':   () => Maybe.nothing<Cmd[]>(),
+      'Expr.Paren':    () => Maybe.nothing<Cmd[]>(),
+      'Expr.Template': () => Maybe.nothing<Cmd[]>(),
       'Expr.Cond': ({ branches }) => queryBranches(query)(branches),
       'Expr.Cmd': ({ cmd }) => queryCmd(query)(cmd),
       'Expr.Cmds': ({ cmds }) => queryCmds(query)(cmds),
