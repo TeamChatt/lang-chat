@@ -1,12 +1,12 @@
-import match from '../util/match'
+import { match } from '../util/match'
 import { Runtime, RuntimeThread } from './runtime-async'
 import { Action, Interpreter, InterpreterThread, Result } from './interpreter'
 import { Driver } from './driver'
 
-const diff = <T>(equals: (t1: T, t2: T) => Boolean) => (
-  arr1: T[],
-  arr2: T[]
-): T[] => arr1.filter((x) => !arr2.find((y) => equals(x, y)))
+const diff =
+  <T>(equals: (t1: T, t2: T) => Boolean) =>
+  (arr1: T[], arr2: T[]): T[] =>
+    arr1.filter((x) => !arr2.find((y) => equals(x, y)))
 
 const runAction = (action: Action): Runtime<any> =>
   match(action, {

@@ -1,4 +1,4 @@
-import match from '../util/match'
+import { match } from '../util/match'
 import {
   Prog,
   Cmd,
@@ -77,13 +77,13 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
     'Cmd.Dialogue': ({ character, line }) =>
       of(Cmd.Dialogue({ character, line })),
     'Cmd.ChooseOne': ({ branches }) =>
-      sequenceM<ChoiceBranch>(
-        branches.map(transformer.Branch)
-      ).map((branches) => Cmd.ChooseOne(branches)),
+      sequenceM<ChoiceBranch>(branches.map(transformer.Branch)).map(
+        (branches) => Cmd.ChooseOne(branches)
+      ),
     'Cmd.ChooseAll': ({ branches }) =>
-      sequenceM<ChoiceBranch>(
-        branches.map(transformer.Branch)
-      ).map((branches) => Cmd.ChooseAll(branches)),
+      sequenceM<ChoiceBranch>(branches.map(transformer.Branch)).map(
+        (branches) => Cmd.ChooseAll(branches)
+      ),
     'Cmd.ForkFirst': ({ branches }) =>
       sequenceM<ForkBranch>(branches.map(transformer.Branch)).map((branches) =>
         Cmd.ForkFirst(branches)
@@ -176,14 +176,14 @@ export const transformM = (of: <T>(t: T) => Monad<T>) => {
   }
 
   // Program
-  const runTransformM = (visitor: ASTVisitor) => ({
-    commands,
-  }: Prog): Monad<Prog> => {
-    const transformer = makeTransformer(visitor)
-    return sequenceM<Cmd>(commands.map(transformer.Cmd)).flatMap((commands) =>
-      of({ commands })
-    )
-  }
+  const runTransformM =
+    (visitor: ASTVisitor) =>
+    ({ commands }: Prog): Monad<Prog> => {
+      const transformer = makeTransformer(visitor)
+      return sequenceM<Cmd>(commands.map(transformer.Cmd)).flatMap((commands) =>
+        of({ commands })
+      )
+    }
 
   return runTransformM
 }

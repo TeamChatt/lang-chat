@@ -1,4 +1,4 @@
-import match from '../util/match'
+import { match } from '../util/match'
 import { Prog, Cmd, Expr, Branch } from './ast'
 
 type Transformer = {
@@ -120,9 +120,9 @@ const makeTransformer = (visitor: ASTVisitor): Transformer => {
 }
 
 // Program
-export const transform = (visitor: ASTVisitor) => ({
-  commands,
-}: Prog): Prog => {
-  const transformer: Transformer = makeTransformer(visitor)
-  return { commands: commands.map(transformer.Cmd) }
-}
+export const transform =
+  (visitor: ASTVisitor) =>
+  ({ commands }: Prog): Prog => {
+    const transformer: Transformer = makeTransformer(visitor)
+    return { commands: commands.map(transformer.Cmd) }
+  }

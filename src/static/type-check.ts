@@ -1,4 +1,4 @@
-import match from '../util/match'
+import { match } from '../util/match'
 import { Prog, Cmd, Expr } from './ast'
 import { Type, literalType, unifyTypes } from './types'
 import {
@@ -132,17 +132,25 @@ const synthBranch = (branch): TypeChecker<Type> =>
 // Type Checking
 //-----------------------------------------------------------------------------
 
-const checkCmd = (type: Type) => (cmd: Cmd): TypeChecker<Type> =>
-  withLocation(cmd.loc, synthCmd(cmd).flatMap(expectType(type)))
+const checkCmd =
+  (type: Type) =>
+  (cmd: Cmd): TypeChecker<Type> =>
+    withLocation(cmd.loc, synthCmd(cmd).flatMap(expectType(type)))
 
-const checkExpr = (type: Type) => (expr: Expr): TypeChecker<Type> =>
-  synthExpr(expr).flatMap(expectType(type))
+const checkExpr =
+  (type: Type) =>
+  (expr: Expr): TypeChecker<Type> =>
+    synthExpr(expr).flatMap(expectType(type))
 
-const checkBranches = (type: Type) => (branches: any[]): TypeChecker<Type[]> =>
-  sequenceM(branches.map(checkBranch(type)))
+const checkBranches =
+  (type: Type) =>
+  (branches: any[]): TypeChecker<Type[]> =>
+    sequenceM(branches.map(checkBranch(type)))
 
-const checkBranch = (type: Type) => (branch: any): TypeChecker<Type> =>
-  synthBranch(branch).flatMap(expectType(type))
+const checkBranch =
+  (type: Type) =>
+  (branch: any): TypeChecker<Type> =>
+    synthBranch(branch).flatMap(expectType(type))
 
 const checkProg = ({ commands }: Prog): TypeChecker<Prog> =>
   sequenceM(commands.map(checkCmd(Type.Cmd))).map(() => ({ commands }))

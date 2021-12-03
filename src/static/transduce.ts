@@ -1,4 +1,4 @@
-import match from '../util/match'
+import { match } from '../util/match'
 import { Prog, Cmd, Expr, Branch } from './ast'
 import { ASTContext, pure, withKey, withArray } from './ast-context'
 
@@ -162,9 +162,9 @@ export const makeTransducer = (visitor: ASTVisitor): Transducer => {
 }
 
 // Program
-export const transduce = (transducer: Transducer) => ({
-  commands,
-}: Prog): ASTContext<Prog> =>
-  withArray('commands', commands.map(transducer.Cmd)).flatMap((commands) =>
-    pure({ commands })
-  )
+export const transduce =
+  (transducer: Transducer) =>
+  ({ commands }: Prog): ASTContext<Prog> =>
+    withArray('commands', commands.map(transducer.Cmd)).flatMap((commands) =>
+      pure({ commands })
+    )

@@ -1,4 +1,4 @@
-import match from '../util/match'
+import { matchOr } from '../util/match'
 import { Maybe } from '../data/maybe'
 import { Loc, top, equals } from '../static/location'
 import {
@@ -64,115 +64,148 @@ export const empty: RuntimeContext = ctxSeq({
   loc: top,
 })
 
-export const defineVar = (variable: string, value: Result) => (
-  rt: RuntimeContext
-): RuntimeContext =>
-  match(rt, {
-    'RuntimeContext.Seq': ({ bindings, stack, loc }) =>
-      ctxSeq({
-        bindings: bindingDefineVar(variable, value)(bindings),
-        stack,
-        loc,
-      }),
-  })
+export const defineVar =
+  (variable: string, value: Result) =>
+  (rt: RuntimeContext): RuntimeContext =>
+    matchOr(rt, {
+      'RuntimeContext.Seq': ({ bindings, stack, loc }) =>
+        ctxSeq({
+          bindings: bindingDefineVar(variable, value)(bindings),
+          stack,
+          loc,
+        }),
+      default: () => {
+        throw new Error(`Can't define variable in concurrent context`)
+      },
+    })
 
-export const lookupVar = (variable: string) => (
-  rt: RuntimeContext
-): Maybe<Result> =>
-  match(rt, {
-    'RuntimeContext.Seq': ({ bindings }) =>
-      bindingLookupVar<Result>(variable)(bindings).maybe(
-        (r) => Maybe.just(r),
-        () =>
-          rt.stack == null ? Maybe.nothing() : lookupVar(variable)(rt.stack)
-      ),
-  })
+export const lookupVar =
+  (variable: string) =>
+  (rt: RuntimeContext): Maybe<Result> =>
+    matchOr(rt, {
+      'RuntimeContext.Seq': ({ bindings }) =>
+        bindingLookupVar<Result>(variable)(bindings).maybe(
+          (r) => Maybe.just(r),
+          () =>
+            rt.stack == null
+              ? Maybe.nothing<Result>()
+              : lookupVar(variable)(rt.stack)
+        ),
+      default: () => {
+        throw new Error(`Can't lookup variable in concurrent context`)
+      },
+    })
 
 export const allBindings = (rt: RuntimeContext) =>
-  match(rt, {
+  matchOr(rt, {
     'RuntimeContext.Seq': ({ bindings }) =>
       rt.stack ? union(allBindings(rt.stack), bindings) : bindings,
+    default: () => {
+      throw new Error(`Can't get bindings in concurrent context`)
+    },
   })
 
 export const popStack = (rt: RuntimeContext): RuntimeContext => rt.stack
 
 export const pushStack = (rt: RuntimeContext): RuntimeContext =>
-  match(rt, {
+  matchOr(rt, {
     'RuntimeContext.Seq': ({ loc }) =>
       ctxSeq({
         bindings: bindingEmpty,
         stack: rt,
         loc,
       }),
+    default: () => {
+      throw new Error(`Can't push stack in concurrent context`)
+    },
   })
 
 export const visitedBranches = (rt: RuntimeContext): Choice[] =>
-  match(rt, {
+  matchOr(rt, {
     'RuntimeContext.Seq': ({ choices = [] }) => choices,
+    default: () => {
+      throw new Error(`Can't read choices from concurrent context`)
+    },
   })
 
-export const visitBranch = (choice: Choice) => (
-  rt: RuntimeContext
-): RuntimeContext =>
-  match(rt, {
-    'RuntimeContext.Seq': ({ bindings, stack, loc, choices = [] }) =>
-      ctxSeq({
-        bindings,
-        stack,
-        loc,
-        choices: [choice, ...choices],
-      }),
-  })
+export const visitBranch =
+  (choice: Choice) =>
+  (rt: RuntimeContext): RuntimeContext =>
+    matchOr(rt, {
+      'RuntimeContext.Seq': ({ bindings, stack, loc, choices = [] }) =>
+        ctxSeq({
+          bindings,
+          stack,
+          loc,
+          choices: [choice, ...choices],
+        }),
+      default: () => {
+        throw new Error(`Can't choose branch from concurrent context`)
+      },
+    })
 
-const spawn = (loc: Loc) => (rt: RuntimeContext): RuntimeContext =>
-  match(rt, {
-    'RuntimeContext.Seq': () =>
-      ctxSeq({
-        bindings: allBindings(rt),
-        stack: null,
-        loc,
-      }),
-  })
+const spawn =
+  (loc: Loc) =>
+  (rt: RuntimeContext): RuntimeContext =>
+    matchOr(rt, {
+      'RuntimeContext.Seq': () =>
+        ctxSeq({
+          bindings: allBindings(rt),
+          stack: null,
+          loc,
+        }),
+      default: () => {
+        throw new Error(`Can't spawn from from concurrent context`)
+      },
+    })
 
-export const forkFirst = (locations: Loc[]) => (
-  rt: RuntimeContext
-): ParallelRuntimeContext =>
-  ctxParFirst({
-    threads: locations.map((loc) => spawn(loc)(rt)),
-    stack: rt,
-  })
+export const forkFirst =
+  (locations: Loc[]) =>
+  (rt: RuntimeContext): ParallelRuntimeContext =>
+    ctxParFirst({
+      threads: locations.map((loc) => spawn(loc)(rt)),
+      stack: rt,
+    })
 
-export const forkAll = (locations: Loc[]) => (
-  rt: RuntimeContext
-): ParallelRuntimeContext =>
-  ctxParAll({
-    threads: locations.map((loc) => spawn(loc)(rt)),
-    stack: rt,
-  })
+export const forkAll =
+  (locations: Loc[]) =>
+  (rt: RuntimeContext): ParallelRuntimeContext =>
+    ctxParAll({
+      threads: locations.map((loc) => spawn(loc)(rt)),
+      stack: rt,
+    })
 
-export const stepParallel = (newThreads: RuntimeContext[]) => (
-  rt: RuntimeContext
-): ParallelRuntimeContext =>
-  match(rt, {
-    'RuntimeContext.ParFirst': ({ stack }) =>
-      ctxParFirst({
-        threads: newThreads,
-        stack,
-      }),
-    'RuntimeContext.ParAll': ({ stack }) =>
-      ctxParAll({
-        threads: newThreads,
-        stack,
-      }),
-  })
+export const stepParallel =
+  (newThreads: RuntimeContext[]) =>
+  (rt: RuntimeContext): ParallelRuntimeContext =>
+    matchOr(rt, {
+      'RuntimeContext.ParFirst': ({ stack }) =>
+        ctxParFirst({
+          threads: newThreads,
+          stack,
+        }),
+      'RuntimeContext.ParAll': ({ stack }) =>
+        ctxParAll({
+          threads: newThreads,
+          stack,
+        }),
+      default: () => {
+        throw new Error(`Can't step parallel from sequential context`)
+      },
+    })
 
-export const stepSeq = (loc: Loc) => (rt: RuntimeContext): RuntimeContext =>
-  match(rt, {
-    'RuntimeContext.Seq': ({ stack, bindings, choices }) =>
-      ctxSeq({
-        bindings,
-        stack,
-        loc,
-        choices: equals(loc)((rt as CtxSeq).loc) ? choices : [],
-      }),
-  })
+export const stepSeq =
+  (loc: Loc) =>
+  (rt: RuntimeContext): RuntimeContext =>
+    matchOr(rt, {
+      'RuntimeContext.Seq': ({ stack, bindings, choices }) =>
+        ctxSeq({
+          bindings,
+          stack,
+          loc,
+          choices: equals(loc)((rt as CtxSeq).loc) ? choices : [],
+        }),
+      default: () => {
+        throw new Error(`Can't step sequential from concurrent context`)
+      },
+    })

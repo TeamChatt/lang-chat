@@ -1,4 +1,4 @@
-import match from '../util/match'
+import { match } from '../util/match'
 
 const interleave = <T>(array: T[], sep: T): T[] => {
   if (array.length === 0) return []
@@ -33,12 +33,12 @@ export const indent = <T>(doc: Doc<T>): Doc<T> =>
   match(doc, {
     'Doc.Empty': () => Doc.Empty as Doc<T>,
     'Doc.Text': ({ text, doc }) =>
-      Doc.Text({
+      Doc.Text<T>({
         text,
         doc: indent(doc),
       }),
     'Doc.Line': ({ depth, doc }) =>
-      Doc.Line({
+      Doc.Line<T>({
         depth: depth + 1,
         doc: indent(doc),
       }),
@@ -48,12 +48,12 @@ export const concat = <T>(doc1: Doc<T>, doc2: Doc<T>): Doc<T> =>
   match(doc1, {
     'Doc.Empty': () => doc2,
     'Doc.Text': ({ text, doc }) =>
-      Doc.Text({
+      Doc.Text<T>({
         text,
         doc: concat(doc, doc2),
       }),
     'Doc.Line': ({ depth, doc }) =>
-      Doc.Line({
+      Doc.Line<T>({
         depth,
         doc: concat(doc, doc2),
       }),

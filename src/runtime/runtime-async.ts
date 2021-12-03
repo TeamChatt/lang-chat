@@ -59,7 +59,7 @@ export class Runtime<T> {
   static fromEffect<T>(io: Effect<T>): Runtime<T> {
     return new Runtime((context) => {
       const defer = Defer<T>()
-      const effect = async (driver) => {
+      const effect = async (driver: Driver) => {
         const v = await io(driver)
         defer.resolve(v)
         return v
@@ -186,7 +186,7 @@ export class Runtime<T> {
   }
 
   flatten<S>(): Runtime<S> {
-    const { run: runOuter } = (this as unknown) as Runtime<Runtime<S>>
+    const { run: runOuter } = this as unknown as Runtime<Runtime<S>>
     const runInner = (context: RuntimeContext) => {
       const outer = runOuter(context)
       const asyncInner = outer.result.then(({ context, value }) =>

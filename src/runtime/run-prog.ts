@@ -1,4 +1,4 @@
-import match from '../util/match'
+import { match } from '../util/match'
 import { Prog, Cmd, Expr, ChoiceBranch } from '../static/ast'
 import { Loc } from '../static/location'
 import { Maybe } from '../data/maybe'
@@ -108,12 +108,12 @@ const runChooseAll = (choiceBranches: ChoiceBranch[]): Interpreter<any> =>
         )
   )
 
-const runChoices = (originalChoices: ChoiceBranch[]) => (
-  choices: ChoiceBranch[]
-): Interpreter<ChoiceBranch> =>
-  choice(choices.map(fromBranch(originalChoices)))
-    .map(toBranch(originalChoices))
-    .flatMap((choiceBranch) => runBranch(choiceBranch))
+const runChoices =
+  (originalChoices: ChoiceBranch[]) =>
+  (choices: ChoiceBranch[]): Interpreter<ChoiceBranch> =>
+    choice(choices.map(fromBranch(originalChoices)))
+      .map(toBranch(originalChoices))
+      .flatMap((choiceBranch) => runBranch(choiceBranch))
 
 // Expressions
 const evalExpr = (expr: Expr): Interpreter<Result> =>
@@ -143,28 +143,32 @@ const evalExpr = (expr: Expr): Interpreter<Result> =>
     'Expr.Cmds': ({ cmds }) => pure(Result.Cmds(cmds)),
     'Expr.Cond': ({ branches }) => evalBranches(branches),
   })
-const evalUnaryOp = (op: string) => (value: any): Result => {
-  switch (op) {
-    case '!': return Result.Lit(!value) // prettier-ignore
-    case '-': return Result.Lit(-value) // prettier-ignore
+const evalUnaryOp =
+  (op: string) =>
+  (value: any): Result => {
+    switch (op) {
+      case '!': return Result.Lit(!value) // prettier-ignore
+      case '-': return Result.Lit(-value) // prettier-ignore
+    }
   }
-}
-const evalBinaryOp = (op: string) => (left: any, right: any): Result => {
-  switch (op) {
-    case '+':  return Result.Lit(left +  right) // prettier-ignore
-    case '-':  return Result.Lit(left -  right) // prettier-ignore
-    case '==': return Result.Lit(left == right) // prettier-ignore
-    case '!=': return Result.Lit(left != right) // prettier-ignore
-    case '&&': return Result.Lit(left && right) // prettier-ignore
-    case '||': return Result.Lit(left || right) // prettier-ignore
-    case '<':  return Result.Lit(left <  right) // prettier-ignore
-    case '<=': return Result.Lit(left <= right) // prettier-ignore
-    case '>':  return Result.Lit(left >  right) // prettier-ignore
-    case '>=': return Result.Lit(left >= right) // prettier-ignore
-    case '*':  return Result.Lit(left *  right) // prettier-ignore
-    case '/':  return Result.Lit(left /  right) // prettier-ignore
+const evalBinaryOp =
+  (op: string) =>
+  (left: any, right: any): Result => {
+    switch (op) {
+      case '+':  return Result.Lit(left +  right) // prettier-ignore
+      case '-':  return Result.Lit(left -  right) // prettier-ignore
+      case '==': return Result.Lit(left == right) // prettier-ignore
+      case '!=': return Result.Lit(left != right) // prettier-ignore
+      case '&&': return Result.Lit(left && right) // prettier-ignore
+      case '||': return Result.Lit(left || right) // prettier-ignore
+      case '<':  return Result.Lit(left <  right) // prettier-ignore
+      case '<=': return Result.Lit(left <= right) // prettier-ignore
+      case '>':  return Result.Lit(left >  right) // prettier-ignore
+      case '>=': return Result.Lit(left >= right) // prettier-ignore
+      case '*':  return Result.Lit(left *  right) // prettier-ignore
+      case '/':  return Result.Lit(left /  right) // prettier-ignore
+    }
   }
-}
 
 type BranchResult = Interpreter<Maybe<Expr>>
 const evalBranches = (branches: any[]): Interpreter<Result> =>

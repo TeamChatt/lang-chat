@@ -1,5 +1,5 @@
 import { Stream } from 'xstream'
-import match from '../util/match'
+import { match } from '../util/match'
 import { Loc } from '../static/location'
 import { Prog, Cmd } from '../static/ast'
 import queryLocation from '../static/query-location'

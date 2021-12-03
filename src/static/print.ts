@@ -1,4 +1,4 @@
-import match from '../util/match'
+import { match } from '../util/match'
 import { Maybe } from '../data/maybe'
 import {
   indent,
