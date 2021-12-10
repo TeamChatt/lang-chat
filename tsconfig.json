@@ -3,7 +3,7 @@
     "strictNullChecks": true,
     "target": "esnext",
     "moduleResolution": "node",
-    "lib": ["dom", "es2015", "esnext.asynciterable"]
+    "lib": ["dom", "es2019", "esnext.asynciterable"]
   },
   "include": ["src/**/*"]
 }
