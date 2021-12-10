@@ -16,21 +16,22 @@ export interface TypeContext {
 
 export const empty: TypeContext = {
   bindings: emptyBindings,
-  stack: null,
+  stack: undefined,
   locs: [],
 }
 
-export const defineVar = (variable: string, value: Type) => (
-  ctx: TypeContext
-): TypeContext => ({
-  bindings: defineVarBindings(variable, value)(ctx.bindings),
-  stack: ctx.stack,
-  locs: ctx.locs,
-})
+export const defineVar =
+  (variable: string, value: Type) =>
+  (ctx: TypeContext): TypeContext => ({
+    bindings: defineVarBindings(variable, value)(ctx.bindings),
+    stack: ctx.stack,
+    locs: ctx.locs,
+  })
 
-export const lookupVar = (variable: string) => (
-  ctx: TypeContext
-): Maybe<Type> => lookupVarBindings<Type>(variable)(ctx.bindings)
+export const lookupVar =
+  (variable: string) =>
+  (ctx: TypeContext): Maybe<Type> =>
+    lookupVarBindings<Type>(variable)(ctx.bindings)
 
 export const pushStack = (ctx: TypeContext): TypeContext => ({
   bindings: ctx.bindings,
@@ -38,13 +39,15 @@ export const pushStack = (ctx: TypeContext): TypeContext => ({
   locs: ctx.locs,
 })
 
-export const popStack = (ctx: TypeContext): TypeContext => ctx.stack
+export const popStack = (ctx: TypeContext): TypeContext => ctx.stack!
 
-export const pushLocation = (loc: Loc) => (ctx: TypeContext): TypeContext => ({
-  bindings: ctx.bindings,
-  stack: ctx.stack,
-  locs: [loc, ...ctx.locs],
-})
+export const pushLocation =
+  (loc: Loc) =>
+  (ctx: TypeContext): TypeContext => ({
+    bindings: ctx.bindings,
+    stack: ctx.stack,
+    locs: [loc, ...ctx.locs],
+  })
 
 export const popLocation = (ctx: TypeContext): TypeContext => ({
   bindings: ctx.bindings,
