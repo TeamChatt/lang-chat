@@ -74,7 +74,8 @@ const queryBranch =
           ? Maybe.just([Cmd.Run(cmdExpr)])
           : queryExpr(query)(cmdExpr),
       'Branch.Cond': ({ condition, result }) =>
-        // TODO: no need to query condition unless we start allowing command expressions as conditional
+        // TODO: query the condition -- if it matches, append the result
+        // otherwise, query the result
         alts([queryExpr(query)(condition), queryExpr(query)(result)]),
     })
 

@@ -14,10 +14,18 @@ interface Monad<T> {
   flatMap<S>(f: (t: T) => Monad<S>): Monad<S>
 }
 
+// prettier-ignore
+type BranchTransformer = <T extends ChoiceBranch | ForkBranch | CondBranch>(
+  branch: T
+) => T extends ChoiceBranch ? Monad<ChoiceBranch>
+  : T extends ForkBranch ? Monad<ForkBranch>
+  : T extends CondBranch ? Monad<CondBranch>
+  : never
+
 type Transformer = {
   Cmd: (cmd: Cmd) => Monad<Cmd>
   Expr: (expr: Expr) => Monad<Expr>
-  Branch: (branch: any) => Monad<any>
+  Branch: BranchTransformer
 }
 type CmdVisitor = Matcher<Cmd, Monad<Cmd>>
 type ExprVisitor = Matcher<Expr, Monad<Expr>>
@@ -134,14 +142,16 @@ export const visitM = (pure: <T>(t: T) => Monad<T>) => {
           ...visitExpr(transducer),
           ...(visitor.Expr || {}),
         }),
-      Branch: (branch: CondBranch | ChoiceBranch | ForkBranch) =>
-        match(branch, {
+      Branch: ((branch: ChoiceBranch | ForkBranch | CondBranch) => {
+        const branchM = match(branch, {
           ...visitBranch(transducer),
           ...(visitor.Branch || {}),
-        }).map((branchResult) => ({
+        })
+        return (branchM as Monad<any>).map((branchResult) => ({
           ...(branch.loc ? { loc: branch.loc } : {}),
           ...branchResult,
-        })),
+        }))
+      }) as unknown as BranchTransformer,
     }
     return transducer
   }

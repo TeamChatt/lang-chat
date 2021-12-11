@@ -25,7 +25,7 @@ const programError: Prog = tagLocation({
 
 test('check reject fork', (t) => {
   const error = t.throws(() => typeCheck(programError), {
-    message: 'Expected type Type.Cmd, but found Type.String',
+    message: 'Expected type Cmd<Any>, but found String',
   })
   t.deepEqual((error as TypeError).loc, ['commands', '[2]'])
 })

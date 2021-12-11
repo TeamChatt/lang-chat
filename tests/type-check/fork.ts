@@ -46,6 +46,6 @@ const programError: Prog = {
 
 test('check reject fork', (t) => {
   t.throws(() => typeCheck(programError), {
-    message: 'Expected type Type.Cmd, but found Type.String',
+    message: 'Expected type Cmd<Any>, but found String',
   })
 })

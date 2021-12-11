@@ -32,7 +32,7 @@ const programError1: Prog = {
 
 test('check reject decl-run 1', (t) => {
   t.throws(() => typeCheck(programError1), {
-    message: 'Expected type Type.Cmd, but found Type.String',
+    message: 'Expected type Cmd<Any>, but found String',
   })
 })
 

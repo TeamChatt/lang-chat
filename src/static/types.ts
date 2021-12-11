@@ -1,4 +1,5 @@
 import { Maybe } from '../data/maybe'
+import { match } from '../util/match'
 
 export type Type = TAny | TUnit | TString | TNumber | TBool | TCmd
 interface TAny {
@@ -31,6 +32,16 @@ export const Type = {
 }
 
 export const isCmd = (t: Type): t is TCmd => t.kind === 'Type.Cmd'
+
+export const printType = (t: Type): string =>
+  match(t, {
+    'Type.Any': () => 'Any',
+    'Type.Unit': () => 'Unit',
+    'Type.String': () => 'String',
+    'Type.Number': () => 'Number',
+    'Type.Bool': () => 'Bool',
+    'Type.Cmd': ({ resultType }) => `Cmd<${printType(resultType)}>`,
+  })
 
 export const literalType = (lit: any): Type => {
   switch (typeof lit) {

@@ -51,7 +51,7 @@ const programError1: Prog = {
 
 test('check reject cond 1', (t) => {
   t.throws(() => typeCheck(programError1), {
-    message: `Couldn't unify types: ["Type.Cmd","Type.String"]`,
+    message: `Couldn't unify types: ["Cmd<Any>","String"]`,
   })
 })
 
@@ -78,6 +78,6 @@ const programError2: Prog = {
 
 test('check reject cond 2', (t) => {
   t.throws(() => typeCheck(programError2), {
-    message: 'Expected type Type.Bool, but found Type.Number',
+    message: 'Expected type Bool, but found Number',
   })
 })

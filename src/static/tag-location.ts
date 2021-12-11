@@ -27,9 +27,7 @@ export const tagLocation = (program) => {
           )
         ),
       'Cmd.Run': ({ expr }) =>
-        withLocation(
-          withKey('expr', transducer.Expr(expr)).map((expr) => Cmd.Run(expr))
-        ),
+        withLocation(withKey('expr', transducer.Expr(expr)).map(Cmd.Run)),
       'Cmd.Def': ({ variable, value }) =>
         withLocation(
           withKey('value', transducer.Expr(value)).map((value) =>
@@ -44,42 +42,32 @@ export const tagLocation = (program) => {
       'Cmd.ChooseOne': ({ branches }) =>
         withLocation(
           withArray('branches', branches.map(transducer.Branch)).map(
-            (branches) =>
-              //@ts-ignore
-              Cmd.ChooseOne(branches)
+            Cmd.ChooseOne
           )
         ),
       'Cmd.ChooseAll': ({ branches }) =>
         withLocation(
           withArray('branches', branches.map(transducer.Branch)).map(
-            (branches) =>
-              //@ts-ignore
-              Cmd.ChooseAll(branches)
+            Cmd.ChooseAll
           )
         ),
       'Cmd.ForkFirst': ({ branches }) =>
         withLocation(
           withArray('branches', branches.map(transducer.Branch)).map(
-            (branches) =>
-              //@ts-ignore
-              Cmd.ForkFirst(branches)
+            Cmd.ForkFirst
           )
         ),
       'Cmd.ForkAll': ({ branches }) =>
         withLocation(
           withArray('branches', branches.map(transducer.Branch)).map(
-            (branches) =>
-              //@ts-ignore
-              Cmd.ForkAll(branches)
+            Cmd.ForkAll
           )
         ),
     },
     Branch: {
       'Branch.Fork': ({ cmdExpr }) =>
         withLocation(
-          withKey('cmdExpr', transducer.Expr(cmdExpr)).map((cmdExpr) =>
-            Branch.Fork(cmdExpr)
-          )
+          withKey('cmdExpr', transducer.Expr(cmdExpr)).map(Branch.Fork)
         ),
     },
   })

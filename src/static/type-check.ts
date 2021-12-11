@@ -1,6 +1,6 @@
 import { match } from '../util/match'
 import { Prog, Cmd, Expr } from './ast'
-import { Type, literalType, unifyTypes, isCmd } from './types'
+import { Type, literalType, unifyTypes, isCmd, printType } from './types'
 import {
   TypeChecker,
   scoped,
@@ -24,7 +24,8 @@ const synthUnify = (typesM: TypeChecker<Type>[]): TypeChecker<Type> =>
   sequenceM(typesM).flatMap((types) =>
     unifyTypes(types).maybe(
       (t) => pure(t),
-      () => fail(`Couldn't unify types: ${JSON.stringify(types)}`)
+      () =>
+        fail(`Couldn't unify types: ${JSON.stringify(types.map(printType))}`)
     )
   )
 
@@ -32,23 +33,31 @@ const synthCmd = (cmd: Cmd): TypeChecker<Type> =>
   match(cmd, {
     'Cmd.Exec': ({ args }) =>
       // Assert that args aren't Cmd type
-      sequenceM<Type>(args.map(synthExpr)).flatMap((argTypes) =>
-        sequenceM(
-          argTypes.map((t) =>
-            !isCmd(t) ? pure(null) : fail("Can't call exec with command type")
+      sequenceM<Type>(args.map(synthExpr))
+        .flatMap((argTypes) =>
+          sequenceM(
+            argTypes.map((t) =>
+              !isCmd(t) ? pure(null) : fail("Can't call exec with command type")
+            )
           )
         )
-      ),
+        .map(() => CmdAny),
     'Cmd.Run': ({ expr }) => checkExpr(CmdAny)(expr),
     'Cmd.Def': ({ variable, value }) =>
-      synthExpr(value).flatMap((t) => defineVar(variable, t)),
+      synthExpr(value)
+        .flatMap((t) => defineVar(variable, t))
+        .map(() => CmdAny),
     'Cmd.Return': ({ expr }) => synthExpr(expr).map(Type.Cmd),
     'Cmd.Dialogue': () => pure(CmdAny),
-    'Cmd.ChooseOne': ({ branches }) => checkBranches(CmdAny)(branches),
-    'Cmd.ChooseAll': ({ branches }) => checkBranches(CmdAny)(branches),
-    'Cmd.ForkFirst': ({ branches }) => checkBranches(CmdAny)(branches),
-    'Cmd.ForkAll': ({ branches }) => checkBranches(CmdAny)(branches),
-  }).flatMap(() => pure(CmdAny))
+    'Cmd.ChooseOne': ({ branches }) =>
+      checkBranches(CmdAny)(branches).map(() => CmdAny),
+    'Cmd.ChooseAll': ({ branches }) =>
+      checkBranches(CmdAny)(branches).map(() => CmdAny),
+    'Cmd.ForkFirst': ({ branches }) =>
+      checkBranches(CmdAny)(branches).map(() => CmdAny),
+    'Cmd.ForkAll': ({ branches }) =>
+      checkBranches(CmdAny)(branches).map(() => CmdAny),
+  })
 
 const synthExpr = (expr: Expr): TypeChecker<Type> =>
   match(expr, {

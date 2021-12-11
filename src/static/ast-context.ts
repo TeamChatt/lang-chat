@@ -15,7 +15,7 @@ export const empty: ASTContext<any> = State.of(null)
 
 export const pure = <T>(v: T): ASTContext<T> => State.of(v)
 
-const pushKey = <T>(key: string): ASTContext<T> => State.modify(down(key))
+const pushKey = (key: string): ASTContext<undefined> => State.modify(down(key))
 
 const popKey = State.modify(up)
 

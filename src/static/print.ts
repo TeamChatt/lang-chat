@@ -34,14 +34,14 @@ const printLines = (dialogueLines: Expr[]): Doc<string> =>
 const getCharacter = (cmd: Cmd) =>
   match(cmd, {
     'Cmd.Dialogue': ({ character }) => Maybe.just(character),
-    'Cmd.Exec': () => Maybe.nothing(),
-    'Cmd.Run': () => Maybe.nothing(),
-    'Cmd.Def': () => Maybe.nothing(),
-    'Cmd.ChooseOne': () => Maybe.nothing(),
-    'Cmd.ChooseAll': () => Maybe.nothing(),
-    'Cmd.ForkFirst': () => Maybe.nothing(),
-    'Cmd.ForkAll': () => Maybe.nothing(),
-    'Cmd.Return': () => Maybe.nothing(),
+    'Cmd.Exec': () => Maybe.nothing<string>(),
+    'Cmd.Run': () => Maybe.nothing<string>(),
+    'Cmd.Def': () => Maybe.nothing<string>(),
+    'Cmd.ChooseOne': () => Maybe.nothing<string>(),
+    'Cmd.ChooseAll': () => Maybe.nothing<string>(),
+    'Cmd.ForkFirst': () => Maybe.nothing<string>(),
+    'Cmd.ForkAll': () => Maybe.nothing<string>(),
+    'Cmd.Return': () => Maybe.nothing<string>(),
   })
 const getLine = (cmd: Cmd) =>
   matchOr(cmd, {

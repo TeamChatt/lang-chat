@@ -50,6 +50,6 @@ const programError: Prog = {
 
 test('check reject ops', (t) => {
   t.throws(() => typeCheck(programError), {
-    message: `Couldn't unify types: ["Type.Number","Type.Bool"]`,
+    message: `Couldn't unify types: ["Number","Bool"]`,
   })
 })

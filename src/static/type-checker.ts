@@ -1,4 +1,4 @@
-import { Type, unify } from './types'
+import { printType, Type, unify } from './types'
 import { TryState } from '../monad/try-state'
 import {
   TypeContext,
@@ -34,7 +34,11 @@ export const typeMismatch = <T>(
   expectedType: Type,
   actualType: Type
 ): TypeChecker<T> =>
-  fail(`Expected type ${expectedType}, but found ${actualType}`)
+  fail(
+    `Expected type ${printType(expectedType)}, but found ${printType(
+      actualType
+    )}`
+  )
 
 export const variableNotDefined = <T>(variable: string): TypeChecker<T> =>
   TryState.get<TypeContext>()
@@ -86,13 +90,13 @@ export const defineVar = (
   type: Type
 ): TypeChecker<undefined> => TryState.modify(defineVarContext(variable, type))
 
-export const expectType = (expected: Type) => (
-  actual: Type
-): TypeChecker<Type> =>
-  unify(expected, actual).maybe<TypeChecker<Type>>(
-    (unified) => pure(unified),
-    () => typeMismatch(expected, actual)
-  )
+export const expectType =
+  (expected: Type) =>
+  (actual: Type): TypeChecker<Type> =>
+    unify(expected, actual).maybe<TypeChecker<Type>>(
+      (unified) => pure(unified),
+      () => typeMismatch(expected, actual)
+    )
 
 export const unifyVar = (variable: string, type: Type): TypeChecker<Type> =>
   lookupVar(variable)
