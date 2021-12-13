@@ -50,7 +50,10 @@ export const visitM = (pure: <T>(t: T) => Monad<T>) => {
 
   // Commands
   const visitCmd = (transformer: Transformer): CmdVisitor => ({
-    'Cmd.Exec': ({ fn, args }) => pure(Cmd.Exec({ fn, args })),
+    'Cmd.Exec': ({ fn, args }) =>
+      sequenceM(args.map(transformer.Expr)).map((args) =>
+        Cmd.Exec({ fn, args })
+      ),
     'Cmd.Run': ({ expr }) => transformer.Expr(expr).map(Cmd.Run),
     'Cmd.Def': ({ variable, value }) =>
       transformer.Expr(value).map((value) =>

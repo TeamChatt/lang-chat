@@ -20,7 +20,19 @@ const transformer = visitM(Writer.of)({
       return Writer.of(Expr.Cmds(commands))
     },
     'Expr.Result': ({ cmdExpr }) => {
-      const cmdExprM = transformer.Expr(cmdExpr)
+      const cmdExprM = transformerDeep.Expr(cmdExpr)
+      return cmdExprM.flatMap((cmdExpr) => {
+        const temp = makeTemp()
+        const def = Cmd.Def({ variable: temp, value: Expr.Result(cmdExpr) })
+        return Writer.tell(def).flatMap(() => Writer.of(Expr.Var(temp)))
+      })
+    },
+  },
+})
+const transformerDeep = visitM(Writer.of)({
+  Expr: {
+    'Expr.Result': ({ cmdExpr }) => {
+      const cmdExprM = transformerDeep.Expr(cmdExpr)
       return cmdExprM.flatMap((cmdExpr) => {
         const temp = makeTemp()
         const def = Cmd.Def({ variable: temp, value: Expr.Result(cmdExpr) })
