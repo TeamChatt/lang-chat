@@ -22,6 +22,7 @@ import {
   CmdExec,
   CmdForkAll,
   CmdForkFirst,
+  CmdReturn,
   CmdRun,
   CondBranch,
   Expr,
@@ -59,6 +60,7 @@ const reservedWords = [
   'import',
   'let',
   'true',
+  'return',
 ]
 
 // Reserved words
@@ -77,6 +79,7 @@ const tForkFirst = string('fork-first')
 const tImport = string('import')
 const tLet = string('let')
 const tRun = string('run')
+const tReturn = string('return')
 const tTrue = string('true')
 // Symbol Tokens
 const tArrow = string('->')
@@ -151,6 +154,12 @@ const language = (indent: number) =>
         space,
         ['expr', lang.expr] // prettier-ignore
       )
+      const cmdReturn = seqObj<CmdReturn>(
+        ['kind', of('Cmd.Return')],
+        tReturn,
+        space,
+        ['expr', lang.expr] // prettier-ignore
+      )
       const cmdDef = seqObj<CmdDef>(
         ['kind', of('Cmd.Def')],
         tLet,
@@ -209,6 +218,7 @@ const language = (indent: number) =>
       return alt<Cmd>(
         cmdExec,
         cmdRun,
+        cmdReturn,
         cmdDef,
         cmdDialogue,
         cmdChooseOne,

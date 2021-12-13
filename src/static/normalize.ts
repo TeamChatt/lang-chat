@@ -13,14 +13,16 @@ const transformer = visitM(Writer.of)({
   Expr: {
     'Expr.Cmd': ({ cmd }) => {
       const [c, cmds] = normalizeCmd(cmd).run()
-      return Writer.of(Expr.Cmds([...cmds, c]))
+      return cmds.length === 0
+        ? Writer.of(Expr.Cmd(c))
+        : Writer.of(Expr.Cmds([...cmds, c]))
     },
     'Expr.Cmds': ({ cmds }) => {
       const commands = normalizeCmds(cmds)
       return Writer.of(Expr.Cmds(commands))
     },
     'Expr.Result': ({ cmdExpr }) => {
-      const cmdExprM = transformerDeep.Expr(cmdExpr)
+      const cmdExprM = transformer.Expr(cmdExpr)
       return cmdExprM.flatMap((cmdExpr) => {
         const temp = makeTemp()
         const def = Cmd.Def({ variable: temp, value: Expr.Result(cmdExpr) })
