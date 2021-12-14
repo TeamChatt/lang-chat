@@ -60,8 +60,6 @@ const visitCmd = (transformer: Transformer): CmdVisitor => ({
 // Expressions
 const visitExpr = (transformer: Transformer): ExprVisitor => ({
   'Expr.Import': ({ path }) => Expr.Import(path),
-  'Expr.Eval': ({ fn, args }) =>
-    Expr.Eval({ fn, args: args.map(transformer.Expr) }),
   'Expr.Var': ({ variable }) => Expr.Var(variable),
   'Expr.Lit': ({ value }) => Expr.Lit(value),
   'Expr.Template': ({ parts }) => Expr.Template(parts.map(transformer.Expr)),

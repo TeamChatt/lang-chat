@@ -63,19 +63,6 @@ const synthExpr = (expr: Expr): TypeChecker<Type> =>
   match(expr, {
     'Expr.Import': ({ path }) =>
       path.endsWith('.chat') ? pure(CmdUnit) : pure(Type.String),
-    'Expr.Eval': ({ args }) =>
-      // Assert that args aren't Cmd type
-      sequenceM<Type>(args.map(synthExpr))
-        .flatMap((argTypes) =>
-          sequenceM(
-            argTypes.map((t) =>
-              !isCmd(t)
-                ? pure(CmdAny)
-                : fail("Can't call eval with command type")
-            )
-          )
-        )
-        .map(() => Type.Any),
     'Expr.Var': ({ variable }) => lookupVar(variable),
     'Expr.Lit': ({ value }) => pure(literalType(value)),
     'Expr.Template': ({ parts }) =>

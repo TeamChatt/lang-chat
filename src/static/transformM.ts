@@ -84,10 +84,6 @@ export const visitM = (pure: <T>(t: T) => Monad<T>) => {
   // Expressions
   const visitExpr = (transformer: Transformer): ExprVisitor => ({
     'Expr.Import': ({ path }) => pure(Expr.Import(path)),
-    'Expr.Eval': ({ fn, args }) =>
-      sequenceM<Expr>(args.map(transformer.Expr)).map((args) =>
-        Expr.Eval({ fn, args })
-      ),
     'Expr.Var': ({ variable }) => pure(Expr.Var(variable)),
     'Expr.Lit': ({ value }) => pure(Expr.Lit(value)),
     'Expr.Template': ({ parts }) =>

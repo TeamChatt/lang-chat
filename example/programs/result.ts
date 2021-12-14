@@ -4,7 +4,7 @@ export const program: Prog = {
   commands: [
     Cmd.Def({
       variable: 'start',
-      value: Expr.Eval({ fn: 'eval-1', args: [] }),
+      value: Expr.Result(Expr.Cmd(Cmd.Exec({ fn: 'eval-1', args: [] }))),
     }),
     Cmd.Exec({
       fn: 'command',

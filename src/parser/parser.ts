@@ -29,7 +29,6 @@ import {
   ExprCmd,
   ExprCmds,
   ExprCond,
-  ExprEval,
   ExprImport,
   ExprLit,
   ExprParen,
@@ -72,7 +71,6 @@ const tChooseAll = string('choose-all')
 const tCond = string('cond')
 const tDo = string('do')
 const tExec = string('exec')
-const tEval = string('eval')
 const tFalse = string('false')
 const tForkAll = string('fork-all')
 const tForkBranch = string('branch')
@@ -274,14 +272,6 @@ const language = (indent: number) =>
         ['path', tStr],
         tCloseParen
       )
-      const exprEval = seqObj<ExprEval>(
-        ['kind', of('Expr.Eval')],
-        tEval,
-        tOpenParen,
-        ['fn', tStr],
-        ['args', tComma.then(space).then(lang.expr).many()],
-        tCloseParen
-      )
       const exprResult = seqObj<ExprResult>(
         ['kind', of('Expr.Result')],
         tRun,
@@ -291,7 +281,6 @@ const language = (indent: number) =>
       const exprOperators = withOperators(alt(exprVar, exprLit, exprParen))
       return alt<Expr>(
         exprImport,
-        exprEval,
         exprResult,
         exprOperators,
         exprVar,

@@ -45,7 +45,6 @@ const queryExpr =
     // prettier-ignore
     match(expr, {
       'Expr.Import':   () => Maybe.nothing<Cmd[]>(),
-      'Expr.Eval':     () => Maybe.nothing<Cmd[]>(),
       'Expr.Var':      () => Maybe.nothing<Cmd[]>(),
       'Expr.Lit':      () => Maybe.nothing<Cmd[]>(),
       'Expr.Unary':    () => Maybe.nothing<Cmd[]>(),

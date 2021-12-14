@@ -24,7 +24,6 @@ import {
   scoped,
   step,
   filterChoices,
-  eval$,
 } from './interpreter'
 import { fromBranch, toBranch } from './choice'
 
@@ -49,7 +48,7 @@ const runCmdInner = (cmd: Cmd): Interpreter<Result> =>
     'Cmd.Exec': ({ fn, args }) =>
       sequenceM(args.map(evalExpr))
         .flatMap((results) => exec({ fn, args: results.map(getResult) }))
-        .map(() => Result.Unit),
+        .map(Result.Lit),
     'Cmd.Run': ({ expr }) => evalExpr(expr).flatMap(runResult),
     'Cmd.Return': ({ expr }) => evalExpr(expr),
     'Cmd.Def': ({ variable, value }) =>
@@ -71,14 +70,14 @@ const runCmdInner = (cmd: Cmd): Interpreter<Result> =>
           interpreter: runBranch(branch),
           loc: branchLoc(branch),
         }))
-      ),
+      ).map(() => Result.Unit),
     'Cmd.ForkAll': ({ branches }) =>
       forkAll(
         branches.map((branch) => ({
           interpreter: runBranch(branch),
           loc: branchLoc(branch),
         }))
-      ),
+      ).map(() => Result.Unit),
   })
 
 const runBranch = (branch: ChoiceBranch | ForkBranch): Interpreter<Result> =>
@@ -141,10 +140,6 @@ const evalExpr = (expr: Expr): Interpreter<Result> =>
       sequenceM(parts.map(evalExpr)).map((parts) =>
         Result.Lit(parts.map(getResult).join(''))
       ),
-    'Expr.Eval': ({ fn, args }) =>
-      sequenceM(args.map(evalExpr)).flatMap((results) =>
-        eval$({ fn, args: results.map(getResult) }).map(Result.Lit)
-      ),
     'Expr.Unary': ({ expr, op }) =>
       evalExpr(expr).map(getResult).map(evalUnaryOp(op)),
     'Expr.Binary': ({ exprLeft, op, exprRight }) =>
@@ -159,10 +154,7 @@ const evalExpr = (expr: Expr): Interpreter<Result> =>
     'Expr.Cmd': ({ cmd }) => pure(Result.Cmd(cmd)),
     'Expr.Cmds': ({ cmds }) => pure(Result.Cmds(cmds)),
     'Expr.Cond': ({ branches }) => evalBranches(branches),
-    'Expr.Result': ({ cmdExpr }) =>
-      evalExpr(cmdExpr)
-        .flatMap(runResult)
-        .map((result) => Result.Lit(result)),
+    'Expr.Result': ({ cmdExpr }) => evalExpr(cmdExpr).flatMap(runResult),
   })
 const evalUnaryOp =
   (op: string) =>
@@ -227,8 +219,8 @@ const getResult = (result: Result) =>
   })
 
 // Program
-export const runCmds = (cmds: Cmd[]): Interpreter<any> =>
-  sequenceM(cmds.map(runCmd))
+export const runCmds = (cmds: Cmd[]): Interpreter<Result> =>
+  sequenceM(cmds.map(runCmd)).map((results) => results[results.length - 1])
 
-export const runProg = ({ commands }: Prog): Interpreter<any> =>
+export const runProg = ({ commands }: Prog): Interpreter<Result> =>
   runCmds(commands)

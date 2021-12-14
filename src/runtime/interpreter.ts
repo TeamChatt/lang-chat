@@ -33,7 +33,6 @@ export type Action =
   | ActionDefineVar
   | ActionLookupVar
   | ActionExec
-  | ActionEval
   | ActionDialogue
   | ActionStep
   | ActionForkFirst
@@ -54,11 +53,6 @@ interface ActionLookupVar {
 }
 interface ActionExec {
   kind: 'Action.Exec'
-  fn: string
-  args: string[]
-}
-interface ActionEval {
-  kind: 'Action.Eval'
   fn: string
   args: string[]
 }
@@ -118,7 +112,7 @@ const pushStack: Interpreter<any> = Free.lift({ kind: 'Action.PushStack' })
 const popStack: Interpreter<any> = Free.lift({ kind: 'Action.PopStack' })
 
 export const scoped = <R>(action: Interpreter<R>) =>
-  pushStack.flatMap(() => action).flatMap(() => popStack)
+  pushStack.flatMap(() => action).flatMap((res) => popStack.map(() => res))
 
 export const step = <R>(loc: Loc): Interpreter<R> =>
   Free.lift({ kind: 'Action.Step', loc })
@@ -140,11 +134,8 @@ export const filterChoices = (
   Free.lift({ kind: 'Action.FilterChoices', branches: choiceBranches })
 
 // User defined commands
-export const exec = ({ fn, args }): Interpreter<ResultUnit> =>
+export const exec = ({ fn, args }): Interpreter<any> =>
   Free.lift({ kind: 'Action.Exec', fn, args })
-
-export const eval$ = <R>({ fn, args }): Interpreter<R> =>
-  Free.lift({ kind: 'Action.Eval', fn, args })
 
 export const dialogue = ({ character, line }): Interpreter<ResultUnit> =>
   Free.lift({ kind: 'Action.Dialogue', character, line })

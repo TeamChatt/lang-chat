@@ -5,9 +5,6 @@ export const testDriver: Driver = {
   exec: async (fn, args) => {
     return [fn, ...args.map((arg) => JSON.stringify(arg))].join(' ')
   },
-  eval: async (fn, args) => {
-    return [fn, ...args.map((arg) => JSON.stringify(arg))].join(' ')
-  },
   dialogue: async (character, line) => {
     return line
   },

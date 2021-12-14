@@ -6,7 +6,7 @@ const program: Prog = {
   commands: [
     Cmd.Def({
       variable: 'start',
-      value: Expr.Eval({ fn: 'eval-1', args: [] }),
+      value: Expr.Result(Expr.Cmd(Cmd.Exec({ fn: 'eval-1', args: [] }))),
     }),
     Cmd.Exec({
       fn: 'command',
@@ -17,4 +17,4 @@ const program: Prog = {
 
 const expectedOutput = ['eval-1', 'command "eval-1"']
 
-test('run eval', testProgram, program, expectedOutput)
+test('run result', testProgram, program, expectedOutput)

@@ -3,9 +3,6 @@ import { Driver } from '../src'
 export const driver: Driver = {
   exec: async (fn, args) => {
     console.log({ type: 'exec', fn, args })
-  },
-  eval: async (fn, args) => {
-    console.log({ type: 'eval', fn, args })
     return fn
   },
   dialogue: async (character, line) => {
