@@ -19,6 +19,6 @@ const program: Prog = {
   ],
 }
 
-const expectedOutput = ['exec-true']
+const expectedOutput = [{ fn: 'exec-true', args: [] }]
 
 test('run cond', testProgram, program, expectedOutput)

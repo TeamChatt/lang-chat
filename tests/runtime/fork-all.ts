@@ -22,6 +22,10 @@ const program: Prog = {
   ],
 }
 
-const expectedOutput = ['fn', 'fn', 'fn']
+const expectedOutput = [
+  { fn: 'fn', args: [] },
+  { fn: 'fn', args: [] },
+  { fn: 'fn', args: [] },
+]
 
 test('run cond', testProgram, program, expectedOutput)

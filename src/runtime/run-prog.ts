@@ -60,8 +60,7 @@ const runCmdInner = (cmd: Cmd): Interpreter<Result> =>
         .map(getResult)
         .flatMap((line) => dialogue({ character, line }))
         .map(() => Result.Unit),
-    'Cmd.ChooseOne': ({ branches }) =>
-      runChooseOne(branches).map(() => Result.Unit),
+    'Cmd.ChooseOne': ({ branches }) => runChooseOne(branches),
     'Cmd.ChooseAll': ({ branches }) =>
       runChooseAll(branches).map(() => Result.Unit),
     'Cmd.ForkFirst': ({ branches }) =>

@@ -16,11 +16,11 @@ const program: Prog = {
 }
 
 const expectedOutput = [
-  'knock knock',
-  "who's there?",
-  'lettuce',
-  'lettuce who?',
-  "lettuce in, it's cold out here",
+  { character: 'Alice', line: 'knock knock' },
+  { character: 'Bob', line: "who's there?" },
+  { character: 'Alice', line: 'lettuce' },
+  { character: 'Bob', line: 'lettuce who?' },
+  { character: 'Alice', line: "lettuce in, it's cold out here" },
 ]
 
 test('run dialogue', testProgram, program, expectedOutput)

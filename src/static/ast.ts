@@ -158,15 +158,23 @@ export interface CondBranch {
 
 // Commands
 export const Cmd = {
-  Exec: ({ fn, args }): Cmd => ({ kind: 'Cmd.Exec', fn, args }),
+  Exec: ({ fn, args }: Omit<CmdExec, 'kind'>): Cmd => ({
+    kind: 'Cmd.Exec',
+    fn,
+    args,
+  }),
   Run: (expr: Expr): Cmd => ({ kind: 'Cmd.Run', expr }),
-  Return: (expr): Cmd => ({ kind: 'Cmd.Return', expr }),
-  Dialogue: ({ character, line }): Cmd => ({
+  Return: (expr: Expr): Cmd => ({ kind: 'Cmd.Return', expr }),
+  Dialogue: ({ character, line }: Omit<CmdDialogue, 'kind'>): Cmd => ({
     kind: 'Cmd.Dialogue',
     character,
     line,
   }),
-  Def: ({ variable, value }): Cmd => ({ kind: 'Cmd.Def', variable, value }),
+  Def: ({ variable, value }: Omit<CmdDef, 'kind'>): Cmd => ({
+    kind: 'Cmd.Def',
+    variable,
+    value,
+  }),
   ChooseOne: (branches: ChoiceBranch[]): Cmd => ({
     kind: 'Cmd.ChooseOne',
     branches,
@@ -191,8 +199,12 @@ export const Expr = {
   Var: (variable: string): Expr => ({ kind: 'Expr.Var', variable }),
   Lit: (value: any): Expr => ({ kind: 'Expr.Lit', value }),
   Template: (parts: Expr[]): Expr => ({ kind: 'Expr.Template', parts }),
-  Unary: ({ op, expr }): Expr => ({ kind: 'Expr.Unary', op, expr }),
-  Binary: ({ op, exprLeft, exprRight }): Expr => ({
+  Unary: ({ op, expr }: Omit<ExprUnary, 'kind'>): Expr => ({
+    kind: 'Expr.Unary',
+    op,
+    expr,
+  }),
+  Binary: ({ op, exprLeft, exprRight }: Omit<ExprBinary, 'kind'>): Expr => ({
     kind: 'Expr.Binary',
     op,
     exprLeft,
@@ -207,13 +219,13 @@ export const Expr = {
 
 // Branch types
 export const Branch = {
-  Choice: ({ label, cmdExpr }): ChoiceBranch => ({
+  Choice: ({ label, cmdExpr }: Omit<ChoiceBranch, 'kind'>): ChoiceBranch => ({
     kind: 'Branch.Choice',
     label,
     cmdExpr,
   }),
   Fork: (cmdExpr: Expr): ForkBranch => ({ kind: 'Branch.Fork', cmdExpr }),
-  Cond: ({ condition, result }): CondBranch => ({
+  Cond: ({ condition, result }: Omit<CondBranch, 'kind'>): CondBranch => ({
     kind: 'Branch.Cond',
     condition,
     result,

@@ -16,6 +16,6 @@ const program: Prog = {
   ],
 }
 
-const expectedOutput = ['Nice to meet you, Bob!']
+const expectedOutput = [{ character: 'Alice', line: 'Nice to meet you, Bob!' }]
 
 test('run dialogue with interpolation', testProgram, program, expectedOutput)

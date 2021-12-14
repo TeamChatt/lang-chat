@@ -15,6 +15,9 @@ const program: Prog = {
   ],
 }
 
-const expectedOutput = ['eval-1', 'command "eval-1"']
+const expectedOutput = [
+  { fn: 'eval-1', args: [] },
+  { fn: 'command', args: ['{"fn":"eval-1","args":[]}'] },
+]
 
 test('run result', testProgram, program, expectedOutput)

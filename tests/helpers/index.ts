@@ -2,13 +2,13 @@ import { Macro } from 'ava'
 import { Prog, tagLocation, run, parse, Driver } from '../../src'
 
 export const testDriver: Driver = {
-  exec: async (fn, args) => {
-    return [fn, ...args.map((arg) => JSON.stringify(arg))].join(' ')
+  exec: async (fn, args): Promise<ExecEffect> => {
+    return { fn, args: args.map((arg) => JSON.stringify(arg)) }
   },
-  dialogue: async (character, line) => {
-    return line
+  dialogue: async (character, line): Promise<DialogueEffect> => {
+    return { character, line }
   },
-  branch: async (branches) => {
+  branch: async (branches: BranchEffect[]): Promise<BranchEffect> => {
     return branches[0]
   },
   error: (err) => {
@@ -18,7 +18,12 @@ export const testDriver: Driver = {
 
 const getOutput = (r) => (r && r.kind === 'Result.Lit' ? r.value : r)
 
-export const testProgram: Macro<[Prog, string[]]> = (
+type DialogueEffect = { character: string; line: string }
+type ExecEffect = { fn: string; args: string[] }
+type BranchEffect = { index: number; label: string }
+type OutputEffect = DialogueEffect | ExecEffect | BranchEffect
+
+export const testProgram: Macro<[Prog, OutputEffect[]]> = (
   t,
   program,
   expectedOutput
@@ -30,7 +35,7 @@ export const testProgram: Macro<[Prog, string[]]> = (
   return io.map(async ([effect, ctx]) => {
     const output = getOutput(await effect(testDriver))
     const expected = expectedOutput.shift()
-    t.is(output, expected)
+    t.deepEqual(output, expected)
   })
 }
 

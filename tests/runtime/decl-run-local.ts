@@ -27,6 +27,9 @@ const program: Prog = {
   ],
 }
 
-const expectedOutput = ['exec-from-local', 'exec-from-top-level']
+const expectedOutput = [
+  { fn: 'exec-from-local', args: [] },
+  { fn: 'exec-from-top-level', args: [] },
+]
 
 test('run decl-run-local', testProgram, program, expectedOutput)

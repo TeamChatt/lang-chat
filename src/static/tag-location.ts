@@ -28,6 +28,8 @@ export const tagLocation = (program) => {
         ),
       'Cmd.Run': ({ expr }) =>
         withLocation(withKey('expr', transducer.Expr(expr)).map(Cmd.Run)),
+      'Cmd.Return': ({ expr }) =>
+        withLocation(withKey('expr', transducer.Expr(expr)).map(Cmd.Return)),
       'Cmd.Def': ({ variable, value }) =>
         withLocation(
           withKey('value', transducer.Expr(value)).map((value) =>
@@ -38,7 +40,11 @@ export const tagLocation = (program) => {
           )
         ),
       'Cmd.Dialogue': ({ character, line }) =>
-        withLocation(pure(Cmd.Dialogue({ character, line }))),
+        withLocation(
+          withKey('line', transducer.Expr(line)).map((line) =>
+            Cmd.Dialogue({ character, line })
+          )
+        ),
       'Cmd.ChooseOne': ({ branches }) =>
         withLocation(
           withArray('branches', branches.map(transducer.Branch)).map(

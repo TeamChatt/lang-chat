@@ -15,6 +15,9 @@ const program: Prog = {
   ],
 }
 
-const expectedOutput = ['exec-1', 'exec-2']
+const expectedOutput = [
+  { fn: 'exec-1', args: [] },
+  { fn: 'exec-2', args: [] },
+]
 
 test('run decl-run', testProgram, program, expectedOutput)

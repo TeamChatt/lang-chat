@@ -14,6 +14,10 @@ const program: Prog = {
   ],
 }
 
-const expectedOutput = ['exec', 'exec', 'exec']
+const expectedOutput = [
+  { fn: 'exec', args: [] },
+  { fn: 'exec', args: [] },
+  { fn: 'exec', args: [] },
+]
 
 test('run run-seq', testProgram, program, expectedOutput)
