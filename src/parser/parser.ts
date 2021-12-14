@@ -33,6 +33,7 @@ import {
   ExprImport,
   ExprLit,
   ExprParen,
+  ExprResult,
   ExprVar,
   ForkBranch,
   Prog,
@@ -281,11 +282,18 @@ const language = (indent: number) =>
         ['args', tComma.then(space).then(lang.expr).many()],
         tCloseParen
       )
+      const exprResult = seqObj<ExprResult>(
+        ['kind', of('Expr.Result')],
+        tRun,
+        space,
+        ['cmdExpr', lang.expr]
+      )
       const exprOperators = withOperators(alt(exprVar, exprLit, exprParen))
       return alt<Expr>(
-        exprOperators,
         exprImport,
         exprEval,
+        exprResult,
+        exprOperators,
         exprVar,
         exprLit,
         exprParen

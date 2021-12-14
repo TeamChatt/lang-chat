@@ -35,4 +35,4 @@ const program: Prog = {
   ],
 }
 
-test('parse decl-run', testParse, source, program)
+test('parse return', testParse, source, program)

@@ -135,7 +135,7 @@ const printExpr = (expr: Expr): Doc<string> =>
     'Expr.Cmd': ({ cmd }) => printCmd(cmd),
     'Expr.Cmds': ({ cmds }) => seq(str('do'), indentBlock(printCmds(cmds))),
     'Expr.Result': ({ cmdExpr }) =>
-      seq(str('result'), str(' '), printExpr(cmdExpr)),
+      seq(str('run'), str(' '), printExpr(cmdExpr)),
   })
 
 // Branch types
