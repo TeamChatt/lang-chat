@@ -46,7 +46,8 @@ const visitCmd = (transformer: Transformer): CmdVisitor => ({
       value: transformer.Expr(value),
     }),
   'Cmd.Return': ({ expr }) => Cmd.Return(transformer.Expr(expr)),
-  'Cmd.Dialogue': ({ character, line }) => Cmd.Dialogue({ character, line }),
+  'Cmd.Dialogue': ({ character, line }) =>
+    Cmd.Dialogue({ character, line: transformer.Expr(line) }),
   'Cmd.ChooseOne': ({ branches }) =>
     Cmd.ChooseOne(branches.map(transformer.Branch)),
   'Cmd.ChooseAll': ({ branches }) =>

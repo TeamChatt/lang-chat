@@ -64,7 +64,7 @@ export const visitM = (pure: <T>(t: T) => Monad<T>) => {
       ),
     'Cmd.Return': ({ expr }) => transformer.Expr(expr).map(Cmd.Return),
     'Cmd.Dialogue': ({ character, line }) =>
-      pure(Cmd.Dialogue({ character, line })),
+      transformer.Expr(line).map((line) => Cmd.Dialogue({ character, line })),
     'Cmd.ChooseOne': ({ branches }) =>
       sequenceM<ChoiceBranch>(branches.map(transformer.Branch)).map(
         Cmd.ChooseOne
