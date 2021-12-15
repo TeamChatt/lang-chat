@@ -2,7 +2,7 @@ import { ExecutionContext, Macro } from 'ava'
 import xs, { Stream } from 'xstream'
 import flattenConcurrently from 'xstream/extra/flattenConcurrently'
 
-import { Prog, tagLocation, run, Driver, Output, resume } from '../../src'
+import { Prog, prepare, run, Driver, Output, resume } from '../../src'
 
 type DialogueEffect = { character: string; line: string }
 type ExecEffect = { fn: string; args: string[] }
@@ -48,7 +48,7 @@ export const testProgram: Macro<[Prog, OutputEffect[]]> = (
 ) => {
   t.plan(1)
 
-  const prog = tagLocation(program)
+  const prog = prepare(program)
 
   return run(prog)
     .compose(runDriver(testDriver))
@@ -62,7 +62,7 @@ export const testRuntime: Macro<[Prog, OutputEffect[]]> = (
 ) => {
   t.plan(expectedOutput.length)
 
-  const prog = tagLocation(program)
+  const prog = prepare(program)
 
   const runAll = (
     runtime: Stream<Output>,

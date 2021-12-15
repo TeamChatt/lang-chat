@@ -47,7 +47,9 @@ const visitCmd = (transducer: Transducer): CmdVisitor => ({
   'Cmd.Return': ({ expr }) =>
     withKey('expr', transducer.Expr(expr)).map(Cmd.Return),
   'Cmd.Dialogue': ({ character, line }) =>
-    pure(Cmd.Dialogue({ character, line })),
+    withKey('line', transducer.Expr(line)).map((line) =>
+      Cmd.Dialogue({ character, line })
+    ),
   'Cmd.ChooseOne': ({ branches }) =>
     withArray('branches', branches.map(transducer.Branch)).map(Cmd.ChooseOne),
   'Cmd.ChooseAll': ({ branches }) =>

@@ -1,5 +1,5 @@
 import test from 'ava'
-import { testProgram } from '../helpers'
+import { testProgram, testRuntime } from '../helpers'
 import { Prog, Cmd } from '../../src'
 
 const program: Prog = {
@@ -19,3 +19,5 @@ const expectedOutput = [
 ]
 
 test('run seq', testProgram, program, expectedOutput)
+
+test('resume seq', testRuntime, program, expectedOutput)

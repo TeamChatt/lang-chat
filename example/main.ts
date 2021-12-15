@@ -1,4 +1,4 @@
-import { parse, tagLocation, print, run, resume, RuntimeContext } from '../src'
+import { parse, prepare, print, run, resume, RuntimeContext } from '../src'
 
 import { driver } from './driver'
 
@@ -18,7 +18,7 @@ choose
       2. Exactly-once delivery
 `
 const program = parse(source)
-const taggedProgram = tagLocation(program)
+const taggedProgram = prepare(program)
 console.log(print(taggedProgram))
 
 // const io = resume(taggedProgram, rtContext)
