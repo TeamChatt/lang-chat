@@ -1,6 +1,4 @@
 export class Cont<R, T> {
-  output: R[]
-  value: T
   run: (f: (t: T) => R) => R
 
   constructor(run: (f: (t: T) => R) => R) {
