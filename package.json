@@ -5,6 +5,9 @@
   "main": "dist/lang-chat.js",
   "module": "dist/lang-chat.module.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "license": "MIT",
   "scripts": {
     "start": "parcel ./example/index.html",
