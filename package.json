@@ -2,9 +2,9 @@
   "name": "@team-chatt/lang-chat",
   "version": "1.4.1",
   "source": "src/index.ts",
-  "main": "dist/lang-chat.js",
-  "module": "dist/lang-chat.module.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/lang-chat.js",
+  "module": "./dist/lang-chat.module.js",
+  "types": "./dist/index.d.ts",
   "license": "MIT",
   "scripts": {
     "start": "parcel index.html",
