@@ -50,8 +50,11 @@ const continueStack = (rt: RuntimeContext, program: Prog): Runtime<any> =>
     ? Runtime.popStack()
         .flatMap(() => {
           const stack = rt.stack as SequentialRuntimeContext
-          const cmds = cmdsAtLocation(stack.loc, program).slice(1)
-          return runInterpreter(runCmds(cmds))
+          const cmds = cmdsAtLocation(stack.loc, program)
+          // Choose all may need to be re-run to make sure all choices are covered
+          const rerunFirst = cmds.length > 0 && cmds[0].kind === 'Cmd.ChooseAll'
+          const rest = rerunFirst ? cmds : cmds.slice(1)
+          return runInterpreter(runCmds(rest))
         })
         .flatMap(() => continueStack(rt.stack!, program))
     : Runtime.of(null)
