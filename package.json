@@ -1,6 +1,6 @@
 {
   "name": "@team-chatt/lang-chat",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "source": "src/index.ts",
   "main": "dist/lang-chat.js",
   "module": "dist/lang-chat.module.js",
