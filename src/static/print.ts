@@ -116,7 +116,7 @@ const printExpr = (expr: Expr): Doc<string> =>
     'Expr.Import': ({ path }) =>
       seq(str('import'), str('('), str(`"${path}"`), str(')')),
     'Expr.Var': ({ variable }) => str(variable),
-    'Expr.Lit': ({ value }) => str(`"${value}"`),
+    'Expr.Lit': ({ value }) => printLiteral(value),
     'Expr.Template': ({ parts }) => seq(...parts.map(printExpr)),
     'Expr.Unary': ({ op, expr }) => seq(str(op), printExpr(expr)),
     'Expr.Binary': ({ exprLeft, op, exprRight }) =>
@@ -158,6 +158,13 @@ const printTemplatePart = (expr: Expr): Doc<string> => {
   return seq(str('${'), printExpr(expr), str('}'))
 }
 
+const printLiteral = (value: any): Doc<string> => {
+  if (typeof value === 'string') {
+    return str(`"${value}"`)
+  }
+  return str(`${value}`)
+}
+
 // Branch types
 const printBranches = (
   branches: (ChoiceBranch | CondBranch | ForkBranch)[]
@@ -176,7 +183,7 @@ const printBranch = (
         printExpr(cmdExpr)
       ),
     'Branch.Fork': ({ cmdExpr }) =>
-      seq(str('fork'), str(' '), printExpr(cmdExpr)),
+      seq(str('branch'), str(' '), printExpr(cmdExpr)),
     'Branch.Cond': ({ condition, result }) =>
       seq(
         str('case'),
