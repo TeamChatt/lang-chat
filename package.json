@@ -13,6 +13,7 @@
     "start": "parcel ./example/index.html",
     "build": "parcel build ./src/index.ts",
     "prepare": "npm run build",
+    "preversion": "npm run test",
     "test": "ava",
     "test:watch": "ava --watch"
   },
