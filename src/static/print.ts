@@ -19,14 +19,14 @@ const partition = <T>(arr: T[], f: (t: T) => boolean): [T[], T[]] => {
 }
 
 const parens = (doc: Doc<string>) => seq(str('('), doc, str(')'))
-const list = (docs: Doc<string>[]) => intersperse(docs, str(','))
+const list = (docs: Doc<string>[]) => intersperse(docs, str(', '))
 const indentBlock = (doc: Doc<string>): Doc<string> =>
   indent(concat(newline as Doc<string>, doc))
 const multilineStr = (line: string) => lines(line.split('\n').map(str))
 
 // Dialogue
 const printLine = (line: Expr): Doc<string> =>
-  seq(str('>'), str(' '), printExpr(line))
+  seq(str('>'), str(' '), printExprMultiline(line))
 
 const printLines = (dialogueLines: Expr[]): Doc<string> =>
   lines(dialogueLines.map(printLine))
@@ -100,7 +100,7 @@ const printCmd = (cmd: Cmd): Doc<string> =>
     'Cmd.Dialogue': ({ character, line }) =>
       seq(str(`@${character}`), indentBlock(printLine(line))),
     'Cmd.ChooseOne': ({ branches }) =>
-      seq(str('choose-one'), indentBlock(printBranches(branches))),
+      seq(str('choose'), indentBlock(printBranches(branches))),
     'Cmd.ChooseAll': ({ branches }) =>
       seq(str('choose-all'), indentBlock(printBranches(branches))),
     'Cmd.ForkFirst': ({ branches }) =>
@@ -116,7 +116,7 @@ const printExpr = (expr: Expr): Doc<string> =>
     'Expr.Import': ({ path }) =>
       seq(str('import'), str('('), str(`"${path}"`), str(')')),
     'Expr.Var': ({ variable }) => str(variable),
-    'Expr.Lit': ({ value }) => multilineStr(`${value}`),
+    'Expr.Lit': ({ value }) => str(`"${value}"`),
     'Expr.Template': ({ parts }) => seq(...parts.map(printExpr)),
     'Expr.Unary': ({ op, expr }) => seq(str(op), printExpr(expr)),
     'Expr.Binary': ({ exprLeft, op, exprRight }) =>
@@ -135,6 +135,28 @@ const printExpr = (expr: Expr): Doc<string> =>
     'Expr.Result': ({ cmdExpr }) =>
       seq(str('run'), str(' '), printExpr(cmdExpr)),
   })
+
+const printExprMultiline = (expr: Expr): Doc<string> =>
+  match(expr, {
+    'Expr.Lit': ({ value }) => multilineStr(`${value}`),
+    'Expr.Template': ({ parts }) => seq(...parts.map(printTemplatePart)),
+    'Expr.Import': printExpr,
+    'Expr.Var': printExpr,
+    'Expr.Unary': printExpr,
+    'Expr.Binary': printExpr,
+    'Expr.Paren': printExpr,
+    'Expr.Cond': printExpr,
+    'Expr.Cmd': printExpr,
+    'Expr.Cmds': printExpr,
+    'Expr.Result': printExpr,
+  })
+
+const printTemplatePart = (expr: Expr): Doc<string> => {
+  if (expr.kind === 'Expr.Lit') {
+    return multilineStr(`${expr.value}`)
+  }
+  return seq(str('${'), printExpr(expr), str('}'))
+}
 
 // Branch types
 const printBranches = (

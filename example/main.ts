@@ -3,6 +3,8 @@ import { parse, prepare, print, run, resume, RuntimeContext } from '../src'
 import { driver } from './driver'
 
 const source = `\
+let thing1 = "1. Guaranteed order of messages"
+let thing2 = "2. Exactly-once delivery"
 choose
   choice "\\"Computer science joke\\"" do
     @Alice
@@ -13,9 +15,9 @@ choose
   choice "\\"Distributed computing joke\\"" do
     @Alice
       > There are only two hard problems in distributed computing
-      2. Exactly-once delivery
-      1. Guaranteed order of messages
-      2. Exactly-once delivery
+      \${thing2}
+      \${thing1}
+      \${thing2}
 `
 const program = parse(source)
 const taggedProgram = prepare(program)

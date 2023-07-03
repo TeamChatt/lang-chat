@@ -85,7 +85,7 @@ export const layout = (document) => {
     match(document, {
       'Doc.Empty': () => ['', null],
       'Doc.Text': ({ text, doc }) => [`${text}`, doc],
-      'Doc.Line': ({ depth, doc }) => [`\n${' '.repeat(depth)}`, doc],
+      'Doc.Line': ({ depth, doc }) => [`\n${'  '.repeat(depth)}`, doc],
     })
   let doc = document
   let out = ''
